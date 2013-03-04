@@ -8,7 +8,6 @@ import java.util.Locale;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -23,6 +22,7 @@ import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -48,13 +48,39 @@ public final class RecordActivity extends Activity {
 	private MediaRecorder mMediaRecorder;
 	private boolean isRecording = false;
 
+	private static void setCameraDisplayOrientation(Activity activity,
+			int cameraId, android.hardware.Camera camera) {
+		// see http://developer.android.com/reference/android/hardware/Camera.html#setDisplayOrientation(int)
+		Camera.CameraInfo info =
+				new android.hardware.Camera.CameraInfo();
+		Camera.getCameraInfo(cameraId, info);
+		int rotation = activity.getWindowManager().getDefaultDisplay()
+				.getRotation();
+		int degrees = 0;
+		switch (rotation) {
+		case Surface.ROTATION_0: degrees = 0; break;
+		case Surface.ROTATION_90: degrees = 90; break;
+		case Surface.ROTATION_180: degrees = 180; break;
+		case Surface.ROTATION_270: degrees = 270; break;
+		}
+
+		int result;
+		if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+			result = (info.orientation + degrees) % 360;
+			result = (360 - result) % 360;  // compensate the mirror
+		} else {  // back-facing
+			result = (info.orientation - degrees + 360) % 360;
+		}
+		camera.setDisplayOrientation(result);
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		// this is a music app!  volume buttons here control, well, music volume
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
-		
+
 		setContentView(R.layout.activity_record);
 		// Show the Up button in the action bar.
 		setupActionBar();
@@ -80,44 +106,44 @@ public final class RecordActivity extends Activity {
 		// Add a listener to the Capture button
 		final Button captureButton = (Button) findViewById(R.id.recordButton);
 		captureButton.setOnClickListener(
-		    new View.OnClickListener() {
-		    	
-		    	private void setCaptureButtonText(String text) {
-		    		captureButton.setText(text);
-		    	}
-		    	
-		        @Override
-		        public void onClick(View v) {
-		            if (isRecording) {
-		                // stop recording and release camera
-		                mMediaRecorder.stop();  // stop the recording
-		                releaseMediaRecorder(); // release the MediaRecorder object
-		                mCamera.lock();         // take camera access back from MediaRecorder
+				new View.OnClickListener() {
 
-		                // inform the user that recording has stopped
-		                setCaptureButtonText("Capture");
-		                isRecording = false;
-		            } else {
-		                // initialize video camera
-		                if (prepareVideoRecorder()) {
-		                    // Camera is available and unlocked, MediaRecorder is prepared,
-		                    // now you can start recording
-		                    mMediaRecorder.start();
+					private void setCaptureButtonText(String text) {
+						captureButton.setText(text);
+					}
 
-		                    // inform the user that recording has started
-		                    setCaptureButtonText("Stop");
-		                    isRecording = true;
-		                } else {
-		                    // prepare didn't work, release the camera
-		                    releaseMediaRecorder();
-		                    // TODO
-		                    Log.e(TAG, "Couldn't prepare video recorder!");
-		                    // inform user
-		                }
-		            }
-		        }
-		    }
-		);
+					@Override
+					public void onClick(View v) {
+						if (isRecording) {
+							// stop recording and release camera
+							mMediaRecorder.stop();  // stop the recording
+							releaseMediaRecorder(); // release the MediaRecorder object
+							mCamera.lock();         // take camera access back from MediaRecorder
+
+							// inform the user that recording has stopped
+							setCaptureButtonText("Capture");
+							isRecording = false;
+						} else {
+							// initialize video camera
+							if (prepareVideoRecorder()) {
+								// Camera is available and unlocked, MediaRecorder is prepared,
+								// now you can start recording
+								mMediaRecorder.start();
+
+								// inform the user that recording has started
+								setCaptureButtonText("Stop");
+								isRecording = true;
+							} else {
+								// prepare didn't work, release the camera
+								releaseMediaRecorder();
+								// TODO
+								Log.e(TAG, "Couldn't prepare video recorder!");
+								// inform user
+							}
+						}
+					}
+				}
+				);
 	}
 
 	@Override
@@ -127,7 +153,7 @@ public final class RecordActivity extends Activity {
 
 	private boolean prepareVideoRecorder() {
 		Log.i(TAG, "Preparing video recorder!");
-		
+
 		mMediaRecorder = new MediaRecorder();
 
 		// Step 1: Unlock and set camera to MediaRecorder
@@ -230,7 +256,6 @@ public final class RecordActivity extends Activity {
 	}
 
 	private class PreviewSurface implements SurfaceHolder.Callback {
-
 		@Override
 		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
 		{
@@ -256,6 +281,7 @@ public final class RecordActivity extends Activity {
 					try {
 						mCamera = Camera.open(idx);
 						mCameraId = idx;
+						setCameraDisplayOrientation(RecordActivity.this, mCameraId, mCamera);
 						return;
 					} catch (RuntimeException ex) {
 						Log.e(TAG, "Camera failed to open: " + ex.getLocalizedMessage());

@@ -32,6 +32,7 @@
         <activity
             android:name="com.example.videorecorder.RecordActivity"
             android:label="@string/title_activity_record"
+            android:screenOrientation="portrait"
             android:parentActivityName="com.example.videorecorder.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
