@@ -6,14 +6,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import android.R.id;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -52,6 +51,10 @@ public final class RecordActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// this is a music app!  volume buttons here control, well, music volume
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
 		setContentView(R.layout.activity_record);
 		// Show the Up button in the action bar.
 		setupActionBar();
