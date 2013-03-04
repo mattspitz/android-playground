@@ -167,6 +167,8 @@ public final class RecordActivity extends Activity {
 		// Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
 		mMediaRecorder.setProfile(CamcorderProfile.get(mCameraId, CamcorderProfile.QUALITY_HIGH));
 
+		mMediaRecorder.setOrientationHint(270); // we're in portrait mode, so make sure that our videos record that way!
+
 		// Step 4: Set output file
 		mMediaRecorder.setOutputFile(getOutputMediaFile(MEDIA_TYPE_VIDEO).toString());
 
