@@ -28,7 +28,6 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/imageView"
         android:layout_centerHorizontal="true"
-        android:onClick="recordButtonPressed"
         android:text="@string/record_button" />
 
 </RelativeLayout>

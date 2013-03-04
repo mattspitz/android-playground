@@ -7,6 +7,6 @@
     <string name="record_with_preview">Record with preview!</string>
     <string name="record_without_preview">Record without preview!</string>
     <string name="title_activity_record">Record!</string>
-    <string name="record_button">Go!!</string>
+    <string name="record_button">Capture</string>
 
 </resources>
