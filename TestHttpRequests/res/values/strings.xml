@@ -3,6 +3,7 @@
 
     <string name="app_name">TestHttpRequests</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="hello_world">Who the hell are you?</string>
+    <string name="title_activity_secondary_test">SecondaryTest</string>
 
 </resources>
