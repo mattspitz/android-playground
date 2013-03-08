@@ -80,6 +80,7 @@ public class TheListActivity extends ListActivity {
 			this.items = items;
 		}
 
+		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View view = super.getView(position,  convertView, parent);
 			Sheeperson item = items.get(position);
@@ -116,7 +117,7 @@ public class TheListActivity extends ListActivity {
 		setListAdapter(mSheepleAdapter);
 
 		// Make it a multi-chooser thingy
-		mListView = (ListView)findViewById(android.R.id.list);
+		mListView = getListView();
 		mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		mListView.setOnItemClickListener(new OnItemClickListener(){
 			@Override
