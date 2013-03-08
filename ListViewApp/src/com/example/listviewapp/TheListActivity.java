@@ -1,47 +1,48 @@
 package com.example.listviewapp;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
 import android.app.ListActivity;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.CheckedTextView;
+import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class TheListActivity extends ListActivity {
 
+	private static final String TAG = "TheListActivity";
+
 	private ListView mListView;
 	private SheepleAdapter mSheepleAdapter;
 
-	private static class Sheeperson {
+	private static class Sheeperson extends SelectableRowItem {
 		private final String name;
 		private final String woolColor;
-		private boolean isChecked = false;
-		
+
 		public Sheeperson(String name, String woolColor) {
 			this.name = name;
 			this.woolColor = woolColor;
 		}
-		
-		public void toggle() { isChecked = !isChecked; }
+
 		public String getName() { return name; }
 		public String getWoolColor() { return woolColor; }
-		public boolean isChecked() { return isChecked; }
 
 		@Override
 		public String toString() {
 			return "Sheeperson [name=" + name + ", woolColor=" + woolColor
-					+ ", isChecked=" + isChecked + "]";
+					+ ", isSelected=" + isSelected + "]";
 		}
 	}
 
@@ -72,37 +73,25 @@ public class TheListActivity extends ListActivity {
 		return sheeple;
 	}
 
-	public class SheepleAdapter extends ArrayAdapter<Sheeperson> {
-		private final List<Sheeperson> items;
-
-		public SheepleAdapter(Context context, int resource, int textViewResourceId, List<Sheeperson> items) {
+	public class SheepleAdapter extends SelectableRowAdapter<Sheeperson> {
+		/* required because a default constructor isn't defined in ArrayAdapter! */
+		public SheepleAdapter(Context context, int resource,
+				int textViewResourceId, List<Sheeperson> items) {
 			super(context, resource, textViewResourceId, items);
-			this.items = items;
 		}
 
-		public View getView(int position, View convertView, ViewGroup parent) {
-			View view = super.getView(position,  convertView, parent);
-			Sheeperson item = items.get(position);
-			if (item != null) {
-				CheckedTextView itemView = (CheckedTextView) view.findViewById(R.id.sheep_name);
-				itemView.setText(String.format("%s (%s)", item.getName(), item.getWoolColor()));
-				itemView.setChecked(item.isChecked());
-			}
-			return view;
+		@Override
+		protected void drawItemInView(View view, Sheeperson item) {
+			TextView itemView = (TextView) view.findViewById(R.id.sheep_name);
+			itemView.setText(String.format("%s (%s)", item.getName(), item.getWoolColor()));
+
+			CheckBox checkBox = (CheckBox) view.findViewById(R.id.the_checkbox);
+			checkBox.setChecked(item.isSelected());
 		}
 	}
 
 	public void buttonOnClick(View view) {
-		SparseBooleanArray recipientsArray = mListView.getCheckedItemPositions();
-		
-		List<Sheeperson> selectedSheeple = new ArrayList<Sheeperson>();
-		if (recipientsArray != null) {
-			for (int i = 0; i<recipientsArray.size(); i++) {
-				if (recipientsArray.valueAt(i))
-					selectedSheeple.add(mSheepleAdapter.getItem(recipientsArray.keyAt(i)));
-			}
-		}
-		
+		Collection<Sheeperson> selectedSheeple = mSheepleAdapter.getSelectedItems();
 		Toast.makeText(this, String.format("Selected %d sheeple!", selectedSheeple.size()), Toast.LENGTH_SHORT).show();
 	}
 
@@ -116,15 +105,8 @@ public class TheListActivity extends ListActivity {
 		setListAdapter(mSheepleAdapter);
 
 		// Make it a multi-chooser thingy
-		mListView = (ListView)findViewById(android.R.id.list);
+		mListView = getListView();
 		mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-		mListView.setOnItemClickListener(new OnItemClickListener(){
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				mSheepleAdapter.getItem(position).toggle();
-				mSheepleAdapter.notifyDataSetChanged();
-			}
-		});
 	}
 
 	@Override
