@@ -4,29 +4,18 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal" >
 
-    <!--
     <TextView
-        android:id="@+id/text1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/text2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp" />
-    -->
-
-
-    <CheckedTextView
         android:id="@+id/sheep_name"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.90"
-        android:checkMark="?android:attr/textCheckMark"
         android:gravity="center_vertical"
         android:text="Sheep Name" />
+
+    <CheckBox
+        android:id="@+id/the_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checkMark="?android:attr/textCheckMark" />
 
 </LinearLayout>

@@ -1,24 +1,28 @@
 package com.example.listviewapp;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
 import android.app.ListActivity;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.CheckedTextView;
+import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class TheListActivity extends ListActivity {
+
+	private static final String TAG = "TheListActivity";
 
 	private ListView mListView;
 	private SheepleAdapter mSheepleAdapter;
@@ -26,22 +30,23 @@ public class TheListActivity extends ListActivity {
 	private static class Sheeperson {
 		private final String name;
 		private final String woolColor;
-		private boolean isChecked = false;
-		
+		private boolean isSelected = false;
+
 		public Sheeperson(String name, String woolColor) {
 			this.name = name;
 			this.woolColor = woolColor;
 		}
-		
-		public void toggle() { isChecked = !isChecked; }
+
+		public void toggle() { isSelected = !isSelected; }
+
 		public String getName() { return name; }
 		public String getWoolColor() { return woolColor; }
-		public boolean isChecked() { return isChecked; }
+		public boolean isSelected() { return isSelected; }
 
 		@Override
 		public String toString() {
 			return "Sheeperson [name=" + name + ", woolColor=" + woolColor
-					+ ", isChecked=" + isChecked + "]";
+					+ ", isSelected=" + isSelected + "]";
 		}
 	}
 
@@ -72,6 +77,20 @@ public class TheListActivity extends ListActivity {
 		return sheeple;
 	}
 
+	private static Collection<View> getAllChildren(View parentView, boolean recursive) {
+		Collection<View> allViews = new ArrayList<View>();
+		if (parentView instanceof ViewGroup) {
+			for(int i = 0; i < ((ViewGroup)parentView).getChildCount(); ++i) {
+				View child = ((ViewGroup)parentView).getChildAt(i);
+				allViews.add(child);
+
+				if (recursive)
+					allViews.addAll(getAllChildren(child, recursive));
+			}
+		}
+		return allViews;
+	}
+
 	public class SheepleAdapter extends ArrayAdapter<Sheeperson> {
 		private final List<Sheeperson> items;
 
@@ -81,29 +100,44 @@ public class TheListActivity extends ListActivity {
 		}
 
 		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
+		public View getView(final int position, View convertView, ViewGroup parent) {
 			View view = super.getView(position,  convertView, parent);
-			Sheeperson item = items.get(position);
+
+			final Sheeperson item = items.get(position);
+			/* set the clickable event for the parent */
+			view.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					item.toggle();
+					notifyDataSetChanged();
+				}
+			});
+
+			/* deactivate all children clicks to have them propagate to the parent! */
+			for (View child : getAllChildren(view, true))
+				child.setClickable(false);
+
 			if (item != null) {
-				CheckedTextView itemView = (CheckedTextView) view.findViewById(R.id.sheep_name);
+				TextView itemView = (TextView) view.findViewById(R.id.sheep_name);
 				itemView.setText(String.format("%s (%s)", item.getName(), item.getWoolColor()));
-				itemView.setChecked(item.isChecked());
+
+				CheckBox checkBox = (CheckBox) view.findViewById(R.id.the_checkbox);
+				checkBox.setChecked(item.isSelected());
 			}
 			return view;
+		}
+
+		public Collection<Sheeperson> getSelectedItems() {
+			Collection<Sheeperson> selected = new ArrayList<Sheeperson>();
+			for (Sheeperson item : items)
+				if (item.isSelected())
+					selected.add(item);
+			return selected;
 		}
 	}
 
 	public void buttonOnClick(View view) {
-		SparseBooleanArray recipientsArray = mListView.getCheckedItemPositions();
-		
-		List<Sheeperson> selectedSheeple = new ArrayList<Sheeperson>();
-		if (recipientsArray != null) {
-			for (int i = 0; i<recipientsArray.size(); i++) {
-				if (recipientsArray.valueAt(i))
-					selectedSheeple.add(mSheepleAdapter.getItem(recipientsArray.keyAt(i)));
-			}
-		}
-		
+		Collection<Sheeperson> selectedSheeple = mSheepleAdapter.getSelectedItems();
 		Toast.makeText(this, String.format("Selected %d sheeple!", selectedSheeple.size()), Toast.LENGTH_SHORT).show();
 	}
 
@@ -119,13 +153,6 @@ public class TheListActivity extends ListActivity {
 		// Make it a multi-chooser thingy
 		mListView = getListView();
 		mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-		mListView.setOnItemClickListener(new OnItemClickListener(){
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				mSheepleAdapter.getItem(position).toggle();
-				mSheepleAdapter.notifyDataSetChanged();
-			}
-		});
 	}
 
 	@Override
