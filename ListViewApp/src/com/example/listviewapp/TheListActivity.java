@@ -7,14 +7,10 @@ import java.util.Random;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -87,6 +83,17 @@ public class TheListActivity extends ListActivity {
 
 			CheckBox checkBox = (CheckBox) view.findViewById(R.id.the_checkbox);
 			checkBox.setChecked(item.isSelected());
+		}
+
+		@Override
+		protected ItemClickListener<Sheeperson> getItemClickListenerForItem(final Sheeperson item) {
+			return new ItemClickListener<Sheeperson>() {
+				@Override
+				public void onClick(View view, SelectableRowAdapter<Sheeperson> adapter) {
+					Toast.makeText(TheListActivity.this, String.format("Selected %s!", item.getName()), Toast.LENGTH_SHORT).show();
+					startActivity(new Intent(TheListActivity.this, MainActivity.class));
+				}
+			};
 		}
 	}
 
