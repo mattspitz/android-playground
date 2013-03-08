@@ -27,21 +27,17 @@ public class TheListActivity extends ListActivity {
 	private ListView mListView;
 	private SheepleAdapter mSheepleAdapter;
 
-	private static class Sheeperson {
+	private static class Sheeperson extends SelectableRowItem {
 		private final String name;
 		private final String woolColor;
-		private boolean isSelected = false;
 
 		public Sheeperson(String name, String woolColor) {
 			this.name = name;
 			this.woolColor = woolColor;
 		}
 
-		public void toggle() { isSelected = !isSelected; }
-
 		public String getName() { return name; }
 		public String getWoolColor() { return woolColor; }
-		public boolean isSelected() { return isSelected; }
 
 		@Override
 		public String toString() {
@@ -77,62 +73,20 @@ public class TheListActivity extends ListActivity {
 		return sheeple;
 	}
 
-	private static Collection<View> getAllChildren(View parentView, boolean recursive) {
-		Collection<View> allViews = new ArrayList<View>();
-		if (parentView instanceof ViewGroup) {
-			for(int i = 0; i < ((ViewGroup)parentView).getChildCount(); ++i) {
-				View child = ((ViewGroup)parentView).getChildAt(i);
-				allViews.add(child);
-
-				if (recursive)
-					allViews.addAll(getAllChildren(child, recursive));
-			}
-		}
-		return allViews;
-	}
-
-	public class SheepleAdapter extends ArrayAdapter<Sheeperson> {
-		private final List<Sheeperson> items;
-
-		public SheepleAdapter(Context context, int resource, int textViewResourceId, List<Sheeperson> items) {
+	public class SheepleAdapter extends SelectableRowAdapter<Sheeperson> {
+		/* required because a default constructor isn't defined in ArrayAdapter! */
+		public SheepleAdapter(Context context, int resource,
+				int textViewResourceId, List<Sheeperson> items) {
 			super(context, resource, textViewResourceId, items);
-			this.items = items;
 		}
 
 		@Override
-		public View getView(final int position, View convertView, ViewGroup parent) {
-			View view = super.getView(position,  convertView, parent);
+		protected void drawItemInView(View view, Sheeperson item) {
+			TextView itemView = (TextView) view.findViewById(R.id.sheep_name);
+			itemView.setText(String.format("%s (%s)", item.getName(), item.getWoolColor()));
 
-			final Sheeperson item = items.get(position);
-			/* set the clickable event for the parent */
-			view.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					item.toggle();
-					notifyDataSetChanged();
-				}
-			});
-
-			/* deactivate all children clicks to have them propagate to the parent! */
-			for (View child : getAllChildren(view, true))
-				child.setClickable(false);
-
-			if (item != null) {
-				TextView itemView = (TextView) view.findViewById(R.id.sheep_name);
-				itemView.setText(String.format("%s (%s)", item.getName(), item.getWoolColor()));
-
-				CheckBox checkBox = (CheckBox) view.findViewById(R.id.the_checkbox);
-				checkBox.setChecked(item.isSelected());
-			}
-			return view;
-		}
-
-		public Collection<Sheeperson> getSelectedItems() {
-			Collection<Sheeperson> selected = new ArrayList<Sheeperson>();
-			for (Sheeperson item : items)
-				if (item.isSelected())
-					selected.add(item);
-			return selected;
+			CheckBox checkBox = (CheckBox) view.findViewById(R.id.the_checkbox);
+			checkBox.setChecked(item.isSelected());
 		}
 	}
 
