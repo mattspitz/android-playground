@@ -41,7 +41,7 @@ public class SecondaryTestActivity extends Activity {
 	
 	public void onAuthTestClick(View view) {
 		Log.e(TAG, "Go testauth!");
-		getAsyncHttpClient().get(BASE_URL + "testauth", new RequestParams(), new AsyncHttpResponseHandler() {
+		getAsyncHttpClient().get(BASE_URL + "testauth", null, new AsyncHttpResponseHandler() {
 		     @Override
 		     public void onStart() {
 		    	 Log.i(TAG, "Started request!!");

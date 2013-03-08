@@ -106,7 +106,8 @@ public class MainActivity extends Activity {
 
 	public void onAuthTestClick(View view) {
 		Log.e(TAG, "Go testauth!");
-		getAsyncHttpClient().get(BASE_URL + "testauth", new RequestParams(), new AsyncHttpResponseHandler() {
+		final Activity thisActivity = this;
+		getAsyncHttpClient().get(BASE_URL + "testauth", null, new AsyncHttpResponseHandler() {
 			@Override
 			public void onStart() {
 				Log.i(TAG, "Started request!");
@@ -115,6 +116,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onSuccess(String response) {
 				Log.i(TAG, "Got success response: " + response);
+				startActivity(new Intent(thisActivity, SecondaryTestActivity.class));
 			}
 
 			@Override
