@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.EnumSet;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -20,12 +21,14 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
 import android.util.Log;
 
+import com.example.testhttprequests.LoginHandler.LoginError;
 import com.google.common.base.Preconditions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -132,30 +135,69 @@ public class HootcasterApiClient {
 			throw new RuntimeException(ex); // shouldn't ever happen
 		}
 
-		jsonPost("account/create", true, json, new JsonHttpResponseHandler() {
+		jsonPost("account/create", true, json, new AsyncHttpResponseHandler() {
 			@Override
-			public void onStart() {
-				Log.i(TAG, "onStart");
+			public void onSuccess(int statusCode, final String response) {
+				Log.e(TAG, "Status code: " + statusCode);
+				Log.e(TAG, "Got response: " + response);
+
+				JSONObject jsonResponse;
+				try {
+					jsonResponse = new JSONObject(response);
+				} catch (JSONException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				boolean okay;
+				try {
+					okay = jsonResponse.getBoolean("okay");
+				} catch (JSONException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				if (okay) {
+					loginHandler.handleSuccess();
+				} else {
+					JSONArray jsonErrors;
+					try {
+						jsonErrors = jsonResponse.getJSONArray("errors");
+					} catch (JSONException ex) {
+						throw new RuntimeException(ex);
+					}
+
+					EnumSet<LoginError> errors = EnumSet.noneOf(LoginError.class);
+					for (int i = 0; i < jsonErrors.length(); i++) {
+						String error;
+						try {
+							error = jsonErrors.getString(i);
+						} catch (JSONException ex) {
+							throw new RuntimeException(ex);
+						}
+
+						if ("username_exists".equals(error))
+							errors.add(LoginError.USERNAME_EXISTS);
+						else if ("email_exists".equals(error))
+							errors.add(LoginError.EMAIL_EXISTS);
+						else if ("registration_id_exists".equals(error))
+							errors.add(LoginError.REGISTRATION_ID_EXISTS);
+						else if ("phone_exists".equals(error))
+							errors.add(LoginError.PHONE_EXISTS);
+						else
+							throw new RuntimeException("Unrecognized error string: " + error);
+					}
+					loginHandler.handleErrors(errors);
+				}
 			}
 
 			@Override
-			public void onSuccess(final JSONObject response) {
-				Log.i(TAG, "Success: " + response.toString());
-				loginHandler.handleSuccess();
-			}
+			public void onFailure(final Throwable ex, final String response) {
+				Log.e(TAG, "Failure: " + ex);
+				Log.e(TAG, "Response: " + response);
 
-			@Override
-			public void onFailure(final Throwable ex, final JSONObject response) {
-				Log.e(TAG, "Error: " + ex);
-				if (response != null)
-					Log.e(TAG, "Content: " + response.toString());
 				if (ex instanceof ConnectException)
 					loginHandler.handleConnectionFailure();
-			}
-
-			@Override
-			public void onFinish() {
-				Log.i(TAG, "onFinish");
+				else
+					throw new RuntimeException(ex);
 			}
 		});
 	}

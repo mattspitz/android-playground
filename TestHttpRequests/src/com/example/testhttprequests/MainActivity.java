@@ -1,5 +1,7 @@
 package com.example.testhttprequests;
 
+import java.util.EnumSet;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -53,7 +55,6 @@ public class MainActivity extends Activity {
 				getTextFieldValue(R.id.create_person), registrationId,
 				getTextFieldValue(R.id.create_emailaddress), phone,
 				new LoginHandler() {
-
 					@Override
 					public void handleSuccess() {
 						Log.i(TAG, "Oh my fuck, it worked.");
@@ -65,18 +66,8 @@ public class MainActivity extends Activity {
 					}
 
 					@Override
-					public void handleUsernameAlreadyExists() {
-						throw new RuntimeException("username already exists!");
-					}
-
-					@Override
-					public void handleEmailAlreadyExists() {
-						throw new RuntimeException("email already exists!");
-					}
-
-					@Override
-					public void handleRegistrationIdAlreadyExists() {
-						throw new RuntimeException("registrationId already exists!");
+					public void handleErrors(final EnumSet<LoginError> errors) {
+						throw new RuntimeException("Balls: " + errors);
 					}
 				});
 	}
