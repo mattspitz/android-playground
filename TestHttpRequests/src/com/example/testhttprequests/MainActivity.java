@@ -44,35 +44,41 @@ public class MainActivity extends Activity {
 		return ((TextView)findViewById(viewId)).getText().toString();
 	}
 
-	public void onCreateClick(View view) {		
-		RequestParams params = new RequestParams();
-		params.put("realname", getTextFieldValue(R.id.create_person));
-		params.put("username", getTextFieldValue(R.id.create_user));
-		params.put("password", getTextFieldValue(R.id.create_pass));
-		params.put("email", getTextFieldValue(R.id.create_emailaddress));
+	public void onCreateClick(View view) {
+		HootcasterApiClient client = new HootcasterApiClient(this);
+		String registrationId = "blahblahregistrationid";
+		String phone = "4151234567";
+		client.createAccount(
+				getTextFieldValue(R.id.create_user), getTextFieldValue(R.id.create_pass),
+				getTextFieldValue(R.id.create_person), registrationId,
+				getTextFieldValue(R.id.create_emailaddress), phone,
+				new LoginHandler() {
 
-		Log.e(TAG, "Go create!");
-		getAsyncHttpClient().post(BASE_URL + "account/create", params, new AsyncHttpResponseHandler() {
-			@Override
-			public void onStart() {
-				Log.i(TAG, "Started request!");
-			}
+					@Override
+					public void handleSuccess() {
+						Log.i(TAG, "Oh my fuck, it worked.");
+					}
 
-			@Override
-			public void onSuccess(String response) {
-				Log.i(TAG, "Got success response: " + response);
-			}
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
 
-			@Override
-			public void onFailure(Throwable e, String response) {
-				Log.i(TAG, "Got failure response: " + response + ". Throwable: " + e);
-			}
+					@Override
+					public void handleUsernameAlreadyExists() {
+						throw new RuntimeException("username already exists!");
+					}
 
-			@Override
-			public void onFinish() {
-				Log.i(TAG, "Done with request!");
-			}
-		});
+					@Override
+					public void handleEmailAlreadyExists() {
+						throw new RuntimeException("email already exists!");
+					}
+
+					@Override
+					public void handleRegistrationIdAlreadyExists() {
+						throw new RuntimeException("registrationId already exists!");
+					}
+				});
 	}
 
 	public void onLoginClick(View view) {
