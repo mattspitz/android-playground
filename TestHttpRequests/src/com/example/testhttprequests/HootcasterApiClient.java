@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.EnumSet;
 
 import javax.net.ssl.SSLContext;
@@ -21,6 +22,10 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,11 +33,11 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.testhttprequests.LoginHandler.LoginError;
+import com.example.testhttprequests.account.CreateAccountHandler;
+import com.example.testhttprequests.account.CreateAccountHandler.CreateAccountError;
 import com.google.common.base.Preconditions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
 
 public class HootcasterApiClient {
@@ -43,9 +48,11 @@ public class HootcasterApiClient {
 
 	private final Context context;
 	private final AsyncHttpClient asyncHttpClient;
+	private final ObjectMapper objectMapper;
 
 	public HootcasterApiClient(Context context) {
 		this.context = context;
+		this.objectMapper = new ObjectMapper();
 		this.asyncHttpClient = new AsyncHttpClient();
 		this.asyncHttpClient.setCookieStore(new PersistentCookieStore(this.context));
 
@@ -114,11 +121,11 @@ public class HootcasterApiClient {
 		final String host = isDevEnvironment() ? DEV_HOST : HOST;
 		return String.format("%s://%s/v1/%s", scheme, host, path);
 	}
-
+	
 	public void createAccount(
 			final String username, final String password,
 			final String fullname, final String registrationId,
-			final String email, final String phone, final LoginHandler loginHandler) {
+			final String email, final String phone, final CreateAccountHandler loginHandler) {
 
 		JSONObject json = new JSONObject();
 		try {
@@ -137,56 +144,22 @@ public class HootcasterApiClient {
 
 		jsonPost("account/create", true, json, new AsyncHttpResponseHandler() {
 			@Override
-			public void onSuccess(int statusCode, final String response) {
+			public void onSuccess(int statusCode, final String responseStr) {
 				Log.e(TAG, "Status code: " + statusCode);
-				Log.e(TAG, "Got response: " + response);
+				Log.e(TAG, "Got response: " + responseStr);
 
-				JSONObject jsonResponse;
+				HootcasterResponse<Void, CreateAccountError> response;
 				try {
-					jsonResponse = new JSONObject(response);
-				} catch (JSONException ex) {
+					response = objectMapper.readValue(responseStr, 
+							new TypeReference<HootcasterResponse<Void, CreateAccountError>>() {});
+				} catch (Exception ex) {
 					throw new RuntimeException(ex);
 				}
-
-				boolean okay;
-				try {
-					okay = jsonResponse.getBoolean("okay");
-				} catch (JSONException ex) {
-					throw new RuntimeException(ex);
-				}
-
-				if (okay) {
+				
+				if (response.isOkay())
 					loginHandler.handleSuccess();
-				} else {
-					JSONArray jsonErrors;
-					try {
-						jsonErrors = jsonResponse.getJSONArray("errors");
-					} catch (JSONException ex) {
-						throw new RuntimeException(ex);
-					}
-
-					EnumSet<LoginError> errors = EnumSet.noneOf(LoginError.class);
-					for (int i = 0; i < jsonErrors.length(); i++) {
-						String error;
-						try {
-							error = jsonErrors.getString(i);
-						} catch (JSONException ex) {
-							throw new RuntimeException(ex);
-						}
-
-						if ("username_exists".equals(error))
-							errors.add(LoginError.USERNAME_EXISTS);
-						else if ("email_exists".equals(error))
-							errors.add(LoginError.EMAIL_EXISTS);
-						else if ("registration_id_exists".equals(error))
-							errors.add(LoginError.REGISTRATION_ID_EXISTS);
-						else if ("phone_exists".equals(error))
-							errors.add(LoginError.PHONE_EXISTS);
-						else
-							throw new RuntimeException("Unrecognized error string: " + error);
-					}
-					loginHandler.handleErrors(errors);
-				}
+				else
+					loginHandler.handleErrors(response.getErrors());
 			}
 
 			@Override

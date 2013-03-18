@@ -29,6 +29,11 @@
             android:name="com.example.testhttprequests.SecondaryTestActivity"
             android:label="@string/title_activity_secondary_test" >
         </activity>
+        
+        <uses-library android:name="android.test.runner" />
     </application>
+    
+    <instrumentation android:name="android.test.InstrumentationTestRunner"
+       android:targetPackage="com.example.testhttprequests" android:label="Ze Test Suite" />
 
 </manifest>

@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.testhttprequests.account.CreateAccountHandler;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
@@ -54,7 +55,7 @@ public class MainActivity extends Activity {
 				getTextFieldValue(R.id.create_user), getTextFieldValue(R.id.create_pass),
 				getTextFieldValue(R.id.create_person), registrationId,
 				getTextFieldValue(R.id.create_emailaddress), phone,
-				new LoginHandler() {
+				new CreateAccountHandler() {
 					@Override
 					public void handleSuccess() {
 						Log.i(TAG, "Oh my fuck, it worked.");
@@ -66,7 +67,7 @@ public class MainActivity extends Activity {
 					}
 
 					@Override
-					public void handleErrors(final EnumSet<LoginError> errors) {
+					public void handleErrors(final EnumSet<CreateAccountError> errors) {
 						throw new RuntimeException("Balls: " + errors);
 					}
 				});
