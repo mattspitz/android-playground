@@ -12,8 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.EnumSet;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -25,8 +23,8 @@ import org.apache.http.entity.StringEntity;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-import org.json.JSONArray;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -121,11 +119,17 @@ public class HootcasterApiClient {
 		final String host = isDevEnvironment() ? DEV_HOST : HOST;
 		return String.format("%s://%s/v1/%s", scheme, host, path);
 	}
-	
+
+	private <T, E extends Enum<E>> HootcasterResponse<T, E> deserialize(String responseStr, Class<T> dataClass, Class<E> errorClass) throws JsonParseException, JsonMappingException, IOException {
+		@SuppressWarnings("deprecation")
+		JavaType responseType = TypeFactory.parametricType(HootcasterResponse.class, dataClass, errorClass);
+		return objectMapper.readValue(responseStr, responseType);
+	}
+
 	public void createAccount(
 			final String username, final String password,
 			final String fullname, final String registrationId,
-			final String email, final String phone, final CreateAccountHandler loginHandler) {
+			final String email, final String phone, final CreateAccountHandler createAccountHandler) {
 
 		JSONObject json = new JSONObject();
 		try {
@@ -144,33 +148,36 @@ public class HootcasterApiClient {
 
 		jsonPost("account/create", true, json, new AsyncHttpResponseHandler() {
 			@Override
-			public void onSuccess(int statusCode, final String responseStr) {
-				Log.e(TAG, "Status code: " + statusCode);
-				Log.e(TAG, "Got response: " + responseStr);
-
+			public void onSuccess(final String responseStr) {
 				HootcasterResponse<Void, CreateAccountError> response;
 				try {
-					response = objectMapper.readValue(responseStr, 
-							new TypeReference<HootcasterResponse<Void, CreateAccountError>>() {});
+					response = deserialize(responseStr, Void.class, CreateAccountError.class);
 				} catch (Exception ex) {
+					// allegedly, we got a good response!
 					throw new RuntimeException(ex);
 				}
-				
+
 				if (response.isOkay())
-					loginHandler.handleSuccess();
+					createAccountHandler.handleSuccess();
 				else
-					loginHandler.handleErrors(response.getErrors());
+					createAccountHandler.handleErrors(response.getErrors());
 			}
 
 			@Override
-			public void onFailure(final Throwable ex, final String response) {
-				Log.e(TAG, "Failure: " + ex);
-				Log.e(TAG, "Response: " + response);
-
-				if (ex instanceof ConnectException)
-					loginHandler.handleConnectionFailure();
-				else
-					throw new RuntimeException(ex);
+			public void onFailure(final Throwable throwable, final String responseStr) {
+				if (throwable instanceof ConnectException) {
+					createAccountHandler.handleConnectionFailure();
+				} else {
+					HootcasterResponse<Void, CreateAccountError> response;
+					// try to deserialize; if we can't, have them handle our exception
+					try {
+						response = deserialize(responseStr, Void.class, CreateAccountError.class);
+					} catch (Exception e) {
+						createAccountHandler.handleUnknownException(throwable);
+						return;
+					}
+					createAccountHandler.handleErrors(response.getErrors());
+				}
 			}
 		});
 	}

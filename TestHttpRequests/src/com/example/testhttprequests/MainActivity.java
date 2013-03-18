@@ -1,6 +1,7 @@
 package com.example.testhttprequests;
 
 import java.util.EnumSet;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -49,8 +50,8 @@ public class MainActivity extends Activity {
 
 	public void onCreateClick(View view) {
 		HootcasterApiClient client = new HootcasterApiClient(this);
-		String registrationId = "blahblahregistrationid";
-		String phone = "4151234567";
+		String registrationId = Long.toString((new Random()).nextLong());
+		String phone = "";
 		client.createAccount(
 				getTextFieldValue(R.id.create_user), getTextFieldValue(R.id.create_pass),
 				getTextFieldValue(R.id.create_person), registrationId,
@@ -69,6 +70,11 @@ public class MainActivity extends Activity {
 					@Override
 					public void handleErrors(final EnumSet<CreateAccountError> errors) {
 						throw new RuntimeException("Balls: " + errors);
+					}
+
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						throw new RuntimeException(ex);
 					}
 				});
 	}
