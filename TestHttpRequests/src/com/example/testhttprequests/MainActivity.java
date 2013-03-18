@@ -12,19 +12,22 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.testhttprequests.account.CreateAccountHandler;
+import com.example.testhttprequests.account.CreateAccountHandler.CreateAccountError;
+import com.example.testhttprequests.account.LoginHandler;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
-import com.loopj.android.http.RequestParams;
 
 public class MainActivity extends Activity {
 
 	private static final String TAG = "MainActivity";
 
+	private HootcasterApiClient client;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		this.client = new HootcasterApiClient(this);
 	}
 
 	@Override
@@ -49,9 +52,9 @@ public class MainActivity extends Activity {
 	}
 
 	public void onCreateClick(View view) {
-		HootcasterApiClient client = new HootcasterApiClient(this);
 		String registrationId = Long.toString((new Random()).nextLong());
 		String phone = "";
+
 		client.createAccount(
 				getTextFieldValue(R.id.create_user), getTextFieldValue(R.id.create_pass),
 				getTextFieldValue(R.id.create_person), registrationId,
@@ -80,32 +83,32 @@ public class MainActivity extends Activity {
 	}
 
 	public void onLoginClick(View view) {
-		RequestParams params = new RequestParams();
-		params.put("username", getTextFieldValue(R.id.login_username));
-		params.put("password", getTextFieldValue(R.id.login_password));
+		String registrationId = Long.toString((new Random()).nextLong());
 
-		Log.e(TAG, "Go login!");
-		getAsyncHttpClient().post(BASE_URL + "account/login", params, new AsyncHttpResponseHandler() {
-			@Override
-			public void onStart() {
-				Log.i(TAG, "Started request!");
-			}
+		client.login(
+				getTextFieldValue(R.id.login_username), getTextFieldValue(R.id.login_password),
+				registrationId,
+				new LoginHandler() {
+					@Override
+					public void handleSuccess() {
+						Log.i(TAG, "Oh my fuck, it worked.");
+					}
 
-			@Override
-			public void onSuccess(String response) {
-				Log.i(TAG, "Got success response: " + response);
-			}
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
 
-			@Override
-			public void onFailure(Throwable e, String response) {
-				Log.i(TAG, "Got failure response: " + response + ". Throwable: " + e);
-			}
+					@Override
+					public void handleErrors(final EnumSet<LoginError> errors) {
+						throw new RuntimeException("Balls: " + errors);
+					}
 
-			@Override
-			public void onFinish() {
-				Log.i(TAG, "Done with request!");
-			}
-		});
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						throw new RuntimeException(ex);
+					}
+				});
 	}
 
 	public void onAuthTestClick(View view) {

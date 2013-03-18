@@ -33,6 +33,8 @@ import android.util.Log;
 
 import com.example.testhttprequests.account.CreateAccountHandler;
 import com.example.testhttprequests.account.CreateAccountHandler.CreateAccountError;
+import com.example.testhttprequests.account.LoginHandler;
+import com.example.testhttprequests.account.LoginHandler.LoginError;
 import com.google.common.base.Preconditions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -94,38 +96,6 @@ public class HootcasterApiClient {
 		return IS_DEV_ENVIRONMENT;
 	}
 
-	private void jsonPost(
-			final String path, final boolean isHttps,
-			final JSONObject json, final AsyncHttpResponseHandler handler) {
-		final String url = getUrl(path, isHttps);
-		HttpEntity httpEntity;
-		try {
-			httpEntity = new StringEntity(json.toString(), "UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException(ex); // shouldn't ever happen
-		}
-
-		Log.i(TAG, "URL: " + url);
-		Log.i(TAG, "Data: " + json.toString());
-		asyncHttpClient.post(
-				context, url, 
-				httpEntity, "application/json", 
-				handler
-				);
-	}
-
-	private String getUrl(String path, boolean isHttps) {
-		final String scheme = isHttps ? "https" : "http";
-		final String host = isDevEnvironment() ? DEV_HOST : HOST;
-		return String.format("%s://%s/v1/%s", scheme, host, path);
-	}
-
-	private <T, E extends Enum<E>> HootcasterResponse<T, E> deserialize(String responseStr, Class<T> dataClass, Class<E> errorClass) throws JsonParseException, JsonMappingException, IOException {
-		@SuppressWarnings("deprecation")
-		JavaType responseType = TypeFactory.parametricType(HootcasterResponse.class, dataClass, errorClass);
-		return objectMapper.readValue(responseStr, responseType);
-	}
-
 	public void createAccount(
 			final String username, final String password,
 			final String fullname, final String registrationId,
@@ -181,7 +151,91 @@ public class HootcasterApiClient {
 			}
 		});
 	}
+	
+	public void login(
+			final String username, final String password,
+			final String registrationId, final LoginHandler loginHandler) {	
+		JSONObject json = new JSONObject();
+		try {
+			json.put("username", Preconditions.checkNotNull(username));
+			json.put("password", Preconditions.checkNotNull(password));
+			json.put("registration_id", Preconditions.checkNotNull(registrationId));
+		} catch (JSONException ex) {
+			throw new RuntimeException(ex); // shouldn't ever happen
+		}
 
+		jsonPost("account/login", true, json, new AsyncHttpResponseHandler() {
+			@Override
+			public void onSuccess(final String responseStr) {
+				HootcasterResponse<Void, LoginError> response;
+				try {
+					response = getResponse(responseStr);
+				} catch (Exception ex) {
+					// I thought we got a good response!
+					throw new RuntimeException(ex);
+				}
+
+				if (response.isOkay())
+					loginHandler.handleSuccess();
+				else
+					loginHandler.handleErrors(response.getErrors());
+			}
+
+			@Override
+			public void onFailure(final Throwable throwable, final String responseStr) {
+				if (throwable instanceof ConnectException) {
+					loginHandler.handleConnectionFailure();
+				} else {
+					HootcasterResponse<Void, LoginError> response;
+					// try to deserialize; if we can't, have them handle our exception
+					try {
+						response = getResponse(responseStr);
+					} catch (Exception e) {
+						loginHandler.handleUnknownException(throwable);
+						return;
+					}
+					loginHandler.handleErrors(response.getErrors());
+				}
+			}
+			
+			private HootcasterResponse<Void, LoginError> getResponse(String responseStr) throws JsonParseException, JsonMappingException, IOException {
+				return deserialize(responseStr, Void.class, LoginError.class);
+			}
+		});
+	}
+
+	private void jsonPost(
+			final String path, final boolean isHttps,
+			final JSONObject json, final AsyncHttpResponseHandler handler) {
+		final String url = getUrl(path, isHttps);
+		HttpEntity httpEntity;
+		try {
+			httpEntity = new StringEntity(json.toString(), "UTF-8");
+		} catch (UnsupportedEncodingException ex) {
+			throw new RuntimeException(ex); // shouldn't ever happen
+		}
+
+		Log.i(TAG, "URL: " + url);
+		Log.i(TAG, "Data: " + json.toString());
+		asyncHttpClient.post(
+				context, url, 
+				httpEntity, "application/json", 
+				handler
+				);
+	}
+
+	private String getUrl(String path, boolean isHttps) {
+		final String scheme = isHttps ? "https" : "http";
+		final String host = isDevEnvironment() ? DEV_HOST : HOST;
+		return String.format("%s://%s/v1/%s", scheme, host, path);
+	}
+
+	private <T, E extends Enum<E>> HootcasterResponse<T, E> deserialize(String responseStr, Class<T> dataClass, Class<E> errorClass) throws JsonParseException, JsonMappingException, IOException {
+		@SuppressWarnings("deprecation")
+		JavaType responseType = TypeFactory.parametricType(HootcasterResponse.class, dataClass, errorClass);
+		return objectMapper.readValue(responseStr, responseType);
+	}
+	
 	private static class AcceptAllSSLSocketFactory extends SSLSocketFactory {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 
