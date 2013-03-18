@@ -1,4 +1,4 @@
-package com.example.testhttprequests;
+package com.example.testhttprequests.api;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -20,10 +20,7 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,10 +28,14 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.testhttprequests.account.CreateAccountHandler;
-import com.example.testhttprequests.account.CreateAccountHandler.CreateAccountError;
-import com.example.testhttprequests.account.LoginHandler;
-import com.example.testhttprequests.account.LoginHandler.LoginError;
+import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
+import com.example.testhttprequests.api.handlers.HootcasterResponse;
+import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
+import com.example.testhttprequests.api.handlers.account.CreateAccountHandler.CreateAccountResponse;
+import com.example.testhttprequests.api.handlers.account.LoginHandler;
+import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginResponse;
+import com.example.testhttprequests.api.handlers.contact.AllContactsHandler;
+import com.example.testhttprequests.api.handlers.contact.AllContactsHandler.AllContactsResponse;
 import com.google.common.base.Preconditions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -48,11 +49,10 @@ public class HootcasterApiClient {
 
 	private final Context context;
 	private final AsyncHttpClient asyncHttpClient;
-	private final ObjectMapper objectMapper;
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	public HootcasterApiClient(Context context) {
 		this.context = context;
-		this.objectMapper = new ObjectMapper();
 		this.asyncHttpClient = new AsyncHttpClient();
 		this.asyncHttpClient.setCookieStore(new PersistentCookieStore(this.context));
 
@@ -116,42 +116,24 @@ public class HootcasterApiClient {
 			throw new RuntimeException(ex); // shouldn't ever happen
 		}
 
-		jsonPost("account/create", true, json, new AsyncHttpResponseHandler() {
-			@Override
-			public void onSuccess(final String responseStr) {
-				HootcasterResponse<Void, CreateAccountError> response;
-				try {
-					response = deserialize(responseStr, Void.class, CreateAccountError.class);
-				} catch (Exception ex) {
-					// allegedly, we got a good response!
-					throw new RuntimeException(ex);
-				}
+		jsonPost("account/create", true, json,
+				new HootcasterHttpResponseHandler<CreateAccountResponse>(
+						CreateAccountResponse.getResponseType(),
+						createAccountHandler,
+						new ResponseHandler<CreateAccountResponse>() {
 
-				if (response.isOkay())
-					createAccountHandler.handleSuccess();
-				else
-					createAccountHandler.handleErrors(response.getErrors());
-			}
+							@Override
+							public void handleSuccess(CreateAccountResponse response) {
+								createAccountHandler.handleSuccess();
+							}
 
-			@Override
-			public void onFailure(final Throwable throwable, final String responseStr) {
-				if (throwable instanceof ConnectException) {
-					createAccountHandler.handleConnectionFailure();
-				} else {
-					HootcasterResponse<Void, CreateAccountError> response;
-					// try to deserialize; if we can't, have them handle our exception
-					try {
-						response = deserialize(responseStr, Void.class, CreateAccountError.class);
-					} catch (Exception e) {
-						createAccountHandler.handleUnknownException(throwable);
-						return;
-					}
-					createAccountHandler.handleErrors(response.getErrors());
-				}
-			}
-		});
+							@Override
+							public void handleFailure(CreateAccountResponse response) {
+								createAccountHandler.handleErrors(response.getErrors());
+							}
+						}));
 	}
-	
+
 	public void login(
 			final String username, final String password,
 			final String registrationId, final LoginHandler loginHandler) {	
@@ -164,44 +146,42 @@ public class HootcasterApiClient {
 			throw new RuntimeException(ex); // shouldn't ever happen
 		}
 
-		jsonPost("account/login", true, json, new AsyncHttpResponseHandler() {
-			@Override
-			public void onSuccess(final String responseStr) {
-				HootcasterResponse<Void, LoginError> response;
-				try {
-					response = getResponse(responseStr);
-				} catch (Exception ex) {
-					// I thought we got a good response!
-					throw new RuntimeException(ex);
-				}
+		jsonPost("account/login", true, json,
+				new HootcasterHttpResponseHandler<LoginResponse>(
+						LoginResponse.getResponseType(),
+						loginHandler,
+						new ResponseHandler<LoginResponse>() {
 
-				if (response.isOkay())
-					loginHandler.handleSuccess();
-				else
-					loginHandler.handleErrors(response.getErrors());
-			}
+							@Override
+							public void handleSuccess(LoginResponse response) {
+								loginHandler.handleSuccess();
+							}
 
-			@Override
-			public void onFailure(final Throwable throwable, final String responseStr) {
-				if (throwable instanceof ConnectException) {
-					loginHandler.handleConnectionFailure();
-				} else {
-					HootcasterResponse<Void, LoginError> response;
-					// try to deserialize; if we can't, have them handle our exception
-					try {
-						response = getResponse(responseStr);
-					} catch (Exception e) {
-						loginHandler.handleUnknownException(throwable);
-						return;
-					}
-					loginHandler.handleErrors(response.getErrors());
-				}
-			}
-			
-			private HootcasterResponse<Void, LoginError> getResponse(String responseStr) throws JsonParseException, JsonMappingException, IOException {
-				return deserialize(responseStr, Void.class, LoginError.class);
-			}
-		});
+							@Override
+							public void handleFailure(LoginResponse response) {
+								loginHandler.handleErrors(response.getErrors());
+							}
+						}));
+	}
+
+	public void allContacts(
+			final AllContactsHandler allContactsHandler) {
+		get("contacts",
+				new HootcasterHttpResponseHandler<AllContactsResponse>(
+						AllContactsResponse.getResponseType(),
+						allContactsHandler,
+						new ResponseHandler<AllContactsResponse>() {
+
+							@Override
+							public void handleSuccess(AllContactsResponse response) {
+								allContactsHandler.handleSuccess(response.getData().getContacts());
+							}
+
+							@Override
+							public void handleFailure(AllContactsResponse response) {
+								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
+							}
+						}));
 	}
 
 	private void jsonPost(
@@ -224,18 +204,72 @@ public class HootcasterApiClient {
 				);
 	}
 
+	private void get(
+			final String path, final AsyncHttpResponseHandler handler) {
+		final String url = getUrl(path, false);
+		asyncHttpClient.get(
+				context, url, handler
+				);
+	}
+
 	private String getUrl(String path, boolean isHttps) {
 		final String scheme = isHttps ? "https" : "http";
 		final String host = isDevEnvironment() ? DEV_HOST : HOST;
 		return String.format("%s://%s/v1/%s", scheme, host, path);
 	}
 
-	private <T, E extends Enum<E>> HootcasterResponse<T, E> deserialize(String responseStr, Class<T> dataClass, Class<E> errorClass) throws JsonParseException, JsonMappingException, IOException {
-		@SuppressWarnings("deprecation")
-		JavaType responseType = TypeFactory.parametricType(HootcasterResponse.class, dataClass, errorClass);
-		return objectMapper.readValue(responseStr, responseType);
+	private interface ResponseHandler<R extends HootcasterResponse<?>> {
+		public void handleSuccess(R response);
+		public void handleFailure(R response);
 	}
-	
+
+	public static class HootcasterHttpResponseHandler<R extends HootcasterResponse<?>> extends AsyncHttpResponseHandler {
+		private final JavaType responseType;
+		private final HootcasterApiHandler apiHandler;
+		private final ResponseHandler<R> responseHandler;
+
+		public HootcasterHttpResponseHandler(
+				final JavaType responseType,
+				final HootcasterApiHandler apiHandler,
+				final ResponseHandler<R> responseHandler) {
+			super();
+			this.responseType = responseType;
+			this.apiHandler = apiHandler;
+			this.responseHandler = responseHandler;
+		}
+
+		@Override
+		public final void onSuccess(final String responseStr) {
+			R response;
+			try {
+				response = objectMapper.readValue(responseStr, responseType);
+			} catch (Exception ex) {
+				// I thought we got a good response!
+				throw new RuntimeException(ex);
+			}
+			if (response.isOkay())
+				responseHandler.handleSuccess(response);
+			else 
+				responseHandler.handleFailure(response);
+		}
+
+		@Override
+		public void onFailure(final Throwable throwable, final String responseStr) {
+			if (throwable instanceof ConnectException) {
+				apiHandler.handleConnectionFailure();
+			} else {
+				R response;
+				try {
+					response = objectMapper.readValue(responseStr, responseType);
+				} catch (Exception e) {
+					apiHandler.handleUnknownException(throwable);
+					return;
+				}
+				responseHandler.handleFailure(response);
+			}
+		}
+	}
+
 	private static class AcceptAllSSLSocketFactory extends SSLSocketFactory {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 

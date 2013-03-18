@@ -1,33 +1,28 @@
-package com.example.testhttprequests;
+package com.example.testhttprequests.api.handlers;
 
 import java.util.EnumSet;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public final class HootcasterResponse<T, E extends Enum<E>> {
-	private final boolean okay;
-	private final T data;
+public abstract class HootcasterErrorResponse<T, E extends Enum<E>> extends HootcasterResponse<T> {
 	private final EnumSet<E> errors;
 	
 	@JsonCreator
-	private HootcasterResponse(
+	protected HootcasterErrorResponse(
 		@JsonProperty("okay") final boolean okay,
 		@JsonProperty("data") final T data,
 		@JsonProperty("errors") final EnumSet<E> errors
 			) {
-		this.okay = okay;
-		this.data = data;
+		super(okay, data);
 		this.errors = errors;
 	}
 
-	public boolean isOkay() { return okay; }
-	public T getData() { return data; }
 	public EnumSet<E> getErrors() { return errors; }
 
 	@Override
 	public String toString() {
-		return "HootcasterResponse [okay=" + okay + ", data=" + data
+		return "HootcasterErrorResponse [okay=" + isOkay() + ", data=" + getData()
 				+ ", errors=" + errors + "]";
 	}
 }

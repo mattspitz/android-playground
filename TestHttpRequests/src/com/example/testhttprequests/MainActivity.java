@@ -11,9 +11,11 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.testhttprequests.account.CreateAccountHandler;
-import com.example.testhttprequests.account.CreateAccountHandler.CreateAccountError;
-import com.example.testhttprequests.account.LoginHandler;
+import com.example.testhttprequests.api.HootcasterApiClient;
+import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
+import com.example.testhttprequests.api.handlers.account.CreateAccountHandler.CreateAccountError;
+import com.example.testhttprequests.api.handlers.account.LoginHandler;
+import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginError;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
