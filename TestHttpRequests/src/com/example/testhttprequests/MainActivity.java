@@ -14,7 +14,7 @@ import android.widget.Toast;
 import com.example.testhttprequests.api.HootcasterApiClient;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
 import com.example.testhttprequests.api.handlers.account.LoginHandler;
-import com.example.testhttprequests.api.handlers.contact.AllContactsHandler;
+import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
 import com.example.testhttprequests.api.models.Contact;
 
 public class MainActivity extends Activity {
@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
 
 	public void onContactsClick(View view) {
 		client.allContacts(
-				new AllContactsHandler() {
+				new ContactsHandler() {
 					@Override
 					public void handleConnectionFailure() {
 						throw new RuntimeException("connection failure?!");
@@ -121,6 +121,31 @@ public class MainActivity extends Activity {
 					@Override
 					public void handleSuccess(List<Contact> contacts) {
 						Toast.makeText(getApplication(), "Contacts: " + contacts, Toast.LENGTH_SHORT).show();
+					}
+				});
+	}
+	
+	public void onBlockedContactsClick(View view) {
+		client.blockedContacts(
+				new ContactsHandler() {
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
+
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						throw new RuntimeException(ex);
+					}
+
+					@Override
+					public void handleNeedsLogin() {
+						Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();
+					}
+
+					@Override
+					public void handleSuccess(List<Contact> contacts) {
+						Toast.makeText(getApplication(), "Blocked contacts: " + contacts, Toast.LENGTH_SHORT).show();
 					}
 				});
 	}

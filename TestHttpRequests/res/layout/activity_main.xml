@@ -100,15 +100,23 @@
         android:onClick="onCreateClick"
         android:text="create" />
 
-    <Button
-        android:id="@+id/Button01"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/create_button"
-        android:layout_marginLeft="41dp"
-        android:layout_marginTop="17dp"
-        android:layout_toRightOf="@+id/textView1"
-        android:onClick="onContactsClick"
-        android:text="getContacts" />
+        <Button
+            android:id="@+id/Button02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignRight="@+id/Button01"
+            android:layout_marginBottom="12dp"
+            android:onClick="onBlockedContactsClick"
+            android:text="blocked" />
+
+        <Button
+            android:id="@+id/Button01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/Button02"
+            android:layout_toRightOf="@+id/create_person"
+            android:onClick="onContactsClick"
+            android:text="contacts" />
 
 </RelativeLayout>

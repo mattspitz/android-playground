@@ -10,14 +10,14 @@ import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
 import com.example.testhttprequests.api.handlers.HootcasterResponse;
 import com.example.testhttprequests.api.models.Contact;
 
-public abstract class AllContactsHandler implements HootcasterApiHandler, HootcasterApiLoggedInHandler {
+public abstract class ContactsHandler implements HootcasterApiHandler, HootcasterApiLoggedInHandler {
 	public abstract void handleSuccess(List<Contact> contacts);
 	
-	public static class AllContactsData {
+	public static class ContactsData {
 		private final List<Contact> contacts;
 		
 		@JsonCreator
-		public AllContactsData(
+		public ContactsData(
 				@JsonProperty("contacts") final List<Contact> contacts
 				) {
 			this.contacts = contacts;
@@ -29,16 +29,16 @@ public abstract class AllContactsHandler implements HootcasterApiHandler, Hootca
 		public String toString() { return "AllContactsData [contacts=" + contacts + "]"; }
 	}
 	
-	public static final class AllContactsResponse extends HootcasterResponse<AllContactsData> {
+	public static final class ContactsResponse extends HootcasterResponse<ContactsData> {
 		@JsonCreator
-		private AllContactsResponse(
+		private ContactsResponse(
 				@JsonProperty("okay") final boolean okay,
-				@JsonProperty("data") final AllContactsData data) {
+				@JsonProperty("data") final ContactsData data) {
 			super(okay, data);
 		}
 		
-		public static Class<AllContactsResponse> getResponseClass() {
-			return AllContactsResponse.class;
+		public static Class<ContactsResponse> getResponseClass() {
+			return ContactsResponse.class;
 		}
 	}
 }

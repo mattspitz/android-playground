@@ -35,8 +35,8 @@ import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler.CreateAccountResponse;
 import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginResponse;
-import com.example.testhttprequests.api.handlers.contact.AllContactsHandler;
-import com.example.testhttprequests.api.handlers.contact.AllContactsHandler.AllContactsResponse;
+import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
+import com.example.testhttprequests.api.handlers.contact.ContactsHandler.ContactsResponse;
 import com.google.common.base.Preconditions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -166,24 +166,43 @@ public class HootcasterApiClient {
 	}
 
 	public void allContacts(
-			final AllContactsHandler allContactsHandler) {
+			final ContactsHandler contactsHandler) {
 		get("contacts",
-				new HootcasterHttpResponseHandler<AllContactsResponse>(
-						AllContactsResponse.getResponseClass(),
-						allContactsHandler,
-						new ResponseHandler<AllContactsResponse>() {
-
+				new HootcasterHttpResponseHandler<ContactsResponse>(
+						ContactsResponse.getResponseClass(),
+						contactsHandler,
+						new ResponseHandler<ContactsResponse>() {
 							@Override
-							public void handleSuccess(AllContactsResponse response) {
-								allContactsHandler.handleSuccess(response.getData().getContacts());
+							public void handleSuccess(ContactsResponse response) {
+								contactsHandler.handleSuccess(response.getData().getContacts());
 							}
 
 							@Override
-							public void handleFailure(AllContactsResponse response) {
+							public void handleFailure(ContactsResponse response) {
 								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
 							}
 						}));
 	}
+	
+	public void blockedContacts(
+			final ContactsHandler contactsHandler) {
+		get("contacts/blocked",
+				new HootcasterHttpResponseHandler<ContactsResponse>(
+						ContactsResponse.getResponseClass(),
+						contactsHandler,
+						new ResponseHandler<ContactsResponse>() {
+							@Override
+							public void handleSuccess(ContactsResponse response) {
+								contactsHandler.handleSuccess(response.getData().getContacts());
+							}
+
+							@Override
+							public void handleFailure(ContactsResponse response) {
+								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
+							}
+						}));
+	}
+			
 
 	private void jsonPost(
 			final String path, final boolean isHttps,
