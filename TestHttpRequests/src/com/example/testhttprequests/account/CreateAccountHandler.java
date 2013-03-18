@@ -1,14 +1,12 @@
 package com.example.testhttprequests.account;
 
-import java.util.EnumSet;
-
 import org.codehaus.jackson.annotate.JsonCreator;
 
 import com.example.testhttprequests.HootcasterApiHandler;
+import com.example.testhttprequests.account.CreateAccountHandler.CreateAccountError;
 
-public interface CreateAccountHandler extends HootcasterApiHandler {
+public interface CreateAccountHandler extends HootcasterApiHandler<CreateAccountError> {
 	public void handleSuccess();
-	public void handleErrors(EnumSet<CreateAccountError> errors);
 
 	public static enum CreateAccountError {
 		USERNAME_INVALID("username_invalid"),

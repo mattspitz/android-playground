@@ -1,14 +1,12 @@
 package com.example.testhttprequests.account;
 
-import java.util.EnumSet;
-
 import org.codehaus.jackson.annotate.JsonCreator;
 
 import com.example.testhttprequests.HootcasterApiHandler;
+import com.example.testhttprequests.account.LoginHandler.LoginError;
 
-public interface LoginHandler extends HootcasterApiHandler {
+public interface LoginHandler extends HootcasterApiHandler<LoginError> {
 	public void handleSuccess();
-	public void handleErrors(EnumSet<LoginError> errors);
 
 	public static enum LoginError {
 		INVALID_LOGIN("invalid_login"),
