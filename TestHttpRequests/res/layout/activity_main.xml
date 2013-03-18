@@ -108,17 +108,7 @@
         android:layout_marginLeft="41dp"
         android:layout_marginTop="17dp"
         android:layout_toRightOf="@+id/textView1"
-        android:onClick="onAuthTestClick"
-        android:text="auth test!" />
-
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/Button01"
-        android:layout_alignRight="@+id/textView1"
-        android:layout_marginRight="18dp"
-        android:onClick="onAnotherClick"
-        android:text="try another!" />
+        android:onClick="onContactsClick"
+        android:text="getContacts" />
 
 </RelativeLayout>

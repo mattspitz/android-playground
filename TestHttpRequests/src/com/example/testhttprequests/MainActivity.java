@@ -1,24 +1,21 @@
 package com.example.testhttprequests;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Random;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.testhttprequests.api.HootcasterApiClient;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
-import com.example.testhttprequests.api.handlers.account.CreateAccountHandler.CreateAccountError;
 import com.example.testhttprequests.api.handlers.account.LoginHandler;
-import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginError;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.PersistentCookieStore;
+import com.example.testhttprequests.api.handlers.contact.AllContactsHandler;
+import com.example.testhttprequests.api.models.Contact;
 
 public class MainActivity extends Activity {
 
@@ -39,16 +36,6 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	private AsyncHttpClient asyncClient = null;
-	private static final String BASE_URL = "http://10.0.2.2:5000/v1/"; // localhost!
-	private AsyncHttpClient getAsyncHttpClient() {
-		if (asyncClient == null) {
-			asyncClient = new AsyncHttpClient();
-			asyncClient.setCookieStore(new PersistentCookieStore(getApplication()));
-		}
-		return asyncClient;
-	}
-
 	private String getTextFieldValue(int viewId) {
 		return ((TextView)findViewById(viewId)).getText().toString();
 	}
@@ -64,7 +51,7 @@ public class MainActivity extends Activity {
 				new CreateAccountHandler() {
 					@Override
 					public void handleSuccess() {
-						Log.i(TAG, "Oh my fuck, it worked.");
+						Toast.makeText(getApplication(), "Logged in as: " + getTextFieldValue(R.id.create_user), Toast.LENGTH_SHORT).show();
 					}
 
 					@Override
@@ -74,7 +61,7 @@ public class MainActivity extends Activity {
 
 					@Override
 					public void handleErrors(final EnumSet<CreateAccountError> errors) {
-						throw new RuntimeException("Balls: " + errors);
+						Toast.makeText(getApplication(), "Login failed: " + errors.toString(), Toast.LENGTH_LONG).show();
 					}
 
 					@Override
@@ -93,7 +80,7 @@ public class MainActivity extends Activity {
 				new LoginHandler() {
 					@Override
 					public void handleSuccess() {
-						Log.i(TAG, "Oh my fuck, it worked.");
+						Toast.makeText(getApplication(), "Logged in as: " + getTextFieldValue(R.id.login_username), Toast.LENGTH_SHORT).show();
 					}
 
 					@Override
@@ -103,7 +90,7 @@ public class MainActivity extends Activity {
 
 					@Override
 					public void handleErrors(final EnumSet<LoginError> errors) {
-						throw new RuntimeException("Balls: " + errors);
+						Toast.makeText(getApplication(), "Login failed: " + errors.toString(), Toast.LENGTH_LONG).show();
 					}
 
 					@Override
@@ -113,34 +100,28 @@ public class MainActivity extends Activity {
 				});
 	}
 
-	public void onAuthTestClick(View view) {
-		Log.e(TAG, "Go testauth!");
-		final Activity thisActivity = this;
-		getAsyncHttpClient().get(BASE_URL + "testauth", null, new AsyncHttpResponseHandler() {
-			@Override
-			public void onStart() {
-				Log.i(TAG, "Started request!");
-			}
+	public void onContactsClick(View view) {
+		client.allContacts(
+				new AllContactsHandler() {
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
 
-			@Override
-			public void onSuccess(String response) {
-				Log.i(TAG, "Got success response: " + response);
-				startActivity(new Intent(thisActivity, SecondaryTestActivity.class));
-			}
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						throw new RuntimeException(ex);
+					}
 
-			@Override
-			public void onFailure(Throwable e, String response) {
-				Log.i(TAG, "Got failure response: " + response + ". Throwable: " + e);
-			}
+					@Override
+					public void handleNeedsLogin() {
+						Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();
+					}
 
-			@Override
-			public void onFinish() {
-				Log.i(TAG, "Done with request!");
-			}
-		});
-	}
-
-	public void onAnotherClick(View view) {
-		startActivity(new Intent(this, SecondaryTestActivity.class));
+					@Override
+					public void handleSuccess(List<Contact> contacts) {
+						Toast.makeText(getApplication(), "Contacts: " + contacts, Toast.LENGTH_SHORT).show();
+					}
+				});
 	}
 }

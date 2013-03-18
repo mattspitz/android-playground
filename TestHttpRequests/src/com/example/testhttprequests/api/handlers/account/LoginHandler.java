@@ -4,13 +4,10 @@ import java.util.EnumSet;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.type.JavaType;
 
 import com.example.testhttprequests.api.handlers.HootcasterApiErrorHandler;
 import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
 import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
-import com.example.testhttprequests.api.handlers.HootcasterResponse;
 import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginError;
 
 public abstract class LoginHandler implements HootcasterApiHandler, HootcasterApiErrorHandler<LoginError> {
@@ -43,9 +40,8 @@ public abstract class LoginHandler implements HootcasterApiHandler, HootcasterAp
 			super(okay, data, errors);
 		}
 		
-		@SuppressWarnings("deprecation")
-		public static JavaType getResponseType() {
-			return TypeFactory.parametricType(HootcasterResponse.class, Void.class, LoginError.class);
+		public static Class<LoginResponse> getResponseClass() {
+			return LoginResponse.class;
 		}
 	}
 }

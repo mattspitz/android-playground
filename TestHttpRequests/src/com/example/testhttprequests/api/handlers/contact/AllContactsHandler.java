@@ -4,14 +4,13 @@ import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.type.JavaType;
 
 import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
+import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
 import com.example.testhttprequests.api.handlers.HootcasterResponse;
 import com.example.testhttprequests.api.models.Contact;
 
-public abstract class AllContactsHandler implements HootcasterApiHandler {
+public abstract class AllContactsHandler implements HootcasterApiHandler, HootcasterApiLoggedInHandler {
 	public abstract void handleSuccess(List<Contact> contacts);
 	
 	public static class AllContactsData {
@@ -38,9 +37,8 @@ public abstract class AllContactsHandler implements HootcasterApiHandler {
 			super(okay, data);
 		}
 		
-		@SuppressWarnings("deprecation")
-		public static JavaType getResponseType() {
-			return TypeFactory.parametricType(HootcasterResponse.class, AllContactsData.class, Void.class);
+		public static Class<AllContactsResponse> getResponseClass() {
+			return AllContactsResponse.class;
 		}
 	}
 }
