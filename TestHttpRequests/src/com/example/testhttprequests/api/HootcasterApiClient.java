@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -37,6 +38,8 @@ import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginResponse;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler.ContactsResponse;
+import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
+import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsResponse;
 import com.google.common.base.Preconditions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -152,7 +155,6 @@ public class HootcasterApiClient {
 						LoginResponse.getResponseClass(),
 						loginHandler,
 						new ResponseHandler<LoginResponse>() {
-
 							@Override
 							public void handleSuccess(LoginResponse response) {
 								loginHandler.handleSuccess();
@@ -165,44 +167,87 @@ public class HootcasterApiClient {
 						}));
 	}
 
+	private void getContacts(
+			final String path,
+			final ContactsHandler contactsHandler) {
+		get(path,
+				new HootcasterHttpResponseHandler<ContactsResponse>(
+						ContactsResponse.getResponseClass(),
+						contactsHandler,
+						new ResponseHandler<ContactsResponse>() {
+							@Override
+							public void handleSuccess(ContactsResponse response) {
+								contactsHandler.handleSuccess(response.getData().getContacts());
+							}
+
+							@Override
+							public void handleFailure(ContactsResponse response) {
+								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
+							}
+						}));
+	}
+
 	public void allContacts(
 			final ContactsHandler contactsHandler) {
-		get("contacts",
-				new HootcasterHttpResponseHandler<ContactsResponse>(
-						ContactsResponse.getResponseClass(),
-						contactsHandler,
-						new ResponseHandler<ContactsResponse>() {
-							@Override
-							public void handleSuccess(ContactsResponse response) {
-								contactsHandler.handleSuccess(response.getData().getContacts());
-							}
-
-							@Override
-							public void handleFailure(ContactsResponse response) {
-								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
-							}
-						}));
+		getContacts("contacts", contactsHandler);
 	}
-	
+
 	public void blockedContacts(
 			final ContactsHandler contactsHandler) {
-		get("contacts/blocked",
-				new HootcasterHttpResponseHandler<ContactsResponse>(
-						ContactsResponse.getResponseClass(),
-						contactsHandler,
-						new ResponseHandler<ContactsResponse>() {
+		getContacts("contacts/blocked", contactsHandler);
+	}
+
+	private void modifyContacts(
+			final String path,
+			final List<String> usernames,
+			final ModifyContactsHandler modifyContactsHandler) {
+		JSONObject json = new JSONObject();
+		try {
+			json.put("usernames", Preconditions.checkNotNull(usernames));
+		} catch (JSONException ex) {
+			throw new RuntimeException(ex); // shouldn't ever happen
+		}
+
+		jsonPost(path, false, json,
+				new HootcasterHttpResponseHandler<ModifyContactsResponse>(
+						ModifyContactsResponse.getResponseClass(),
+						modifyContactsHandler,
+						new ResponseHandler<ModifyContactsResponse>() {
 							@Override
-							public void handleSuccess(ContactsResponse response) {
-								contactsHandler.handleSuccess(response.getData().getContacts());
+							public void handleSuccess(ModifyContactsResponse response) {
+								modifyContactsHandler.handleSuccess();
 							}
 
 							@Override
-							public void handleFailure(ContactsResponse response) {
+							public void handleFailure(ModifyContactsResponse response) {
 								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
 							}
 						}));
 	}
-			
+
+	public void addContacts(
+			final List<String> usernames,
+			final ModifyContactsHandler modifyContactsHandler) {
+		modifyContacts("contacts/add", usernames, modifyContactsHandler);
+	}
+
+	public void removeContacts(
+			final List<String> usernames,
+			final ModifyContactsHandler modifyContactsHandler) {
+		modifyContacts("contacts/remove", usernames, modifyContactsHandler);
+	}
+
+	public void blockContacts(
+			final List<String> usernames,
+			final ModifyContactsHandler modifyContactsHandler) {
+		modifyContacts("contacts/block", usernames, modifyContactsHandler);
+	}
+
+	public void unblockContacts(
+			final List<String> usernames,
+			final ModifyContactsHandler modifyContactsHandler) {
+		modifyContacts("contacts/unblock", usernames, modifyContactsHandler);
+	}
 
 	private void jsonPost(
 			final String path, final boolean isHttps,
