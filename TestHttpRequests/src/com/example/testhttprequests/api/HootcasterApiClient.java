@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,8 @@ import com.example.testhttprequests.api.handlers.contact.FindContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.FindContactsHandler.FindContactsResponse;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsResponse;
+import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler;
+import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionResponse;
 import com.example.testhttprequests.api.models.PotentialContact;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -116,7 +119,7 @@ public class HootcasterApiClient {
 				"registration_id", Preconditions.checkNotNull(registrationId)
 				);
 
-		jsonPost("account/create", true, postData,
+		jsonPostHttps("account/create", postData,
 				new HootcasterHttpResponseHandler<CreateAccountResponse>(
 						CreateAccountResponse.getResponseClass(),
 						createAccountHandler,
@@ -144,7 +147,7 @@ public class HootcasterApiClient {
 				"registration_id", Preconditions.checkNotNull(registrationId)
 				);
 
-		jsonPost("account/login", true, postData,
+		jsonPostHttps("account/login", postData,
 				new HootcasterHttpResponseHandler<LoginResponse>(
 						LoginResponse.getResponseClass(),
 						loginHandler,
@@ -204,7 +207,7 @@ public class HootcasterApiClient {
 				"usernames", ImmutableList.copyOf(usernames)
 				);
 
-		jsonPost(path, false, postData,
+		jsonPost(path, postData,
 				new HootcasterHttpResponseHandler<ModifyContactsResponse>(
 						ModifyContactsResponse.getResponseClass(),
 						modifyContactsHandler,
@@ -256,7 +259,7 @@ public class HootcasterApiClient {
 				"contactables", ImmutableMap.copyOf(potentialContacts)
 				);
 
-		jsonPost("contacts/find_new", false, postData,
+		jsonPost("contacts/find_new", postData,
 				new HootcasterHttpResponseHandler<FindContactsResponse>(
 						FindContactsResponse.getResponseClass(),
 						findContactsHandler,
@@ -273,9 +276,43 @@ public class HootcasterApiClient {
 						}));
 	}
 	
+	public void createTransaction(
+			final byte[] image,
+			final String imageContentType,
+			final Collection<String> recipients,
+			final CreateTransactionHandler createTransactionHandler) {
+		
+		Preconditions.checkNotNull(image);
+		Preconditions.checkNotNull(recipients);
+		if (recipients.isEmpty())
+			throw new IllegalArgumentException("Must pass at least one recipient!");
+		
+		final Map<String, ? extends List<String>> postData = ImmutableMap.of(
+				"recipients", ImmutableList.copyOf(recipients)
+				);
+
+		jsonPost("transaction/action/create", postData,
+				image, imageContentType,
+				new HootcasterHttpResponseHandler<CreateTransactionResponse>(
+						CreateTransactionResponse.getResponseClass(),
+						createTransactionHandler,
+						new ResponseHandler<CreateTransactionResponse>() {
+							@Override
+							public void handleSuccess(CreateTransactionResponse response) {
+								createTransactionHandler.handleSuccess();
+							}
+
+							@Override
+							public void handleFailure(CreateTransactionResponse response) {
+								createTransactionHandler.handleErrors(response.getErrors());
+							}
+						}));
+	}
+	
 	private void jsonPost(
 			final String path, final boolean isHttps,
-			final Map<?,?> jsonData, final AsyncHttpResponseHandler handler) {
+			final Map<?,?> jsonData, final byte[] attachmentBytes, final String attachmentContentType, 
+			final AsyncHttpResponseHandler handler) {
 		final String url = getUrl(path, isHttps);
 		String postData;
 		try {
@@ -298,6 +335,25 @@ public class HootcasterApiClient {
 				httpEntity, "application/json", 
 				handler
 				);
+	}
+	
+	private void jsonPost(
+			final String path, final Map<?,?> jsonData, final AsyncHttpResponseHandler handler) {
+		jsonPost(path, false, jsonData, null, null, handler);
+	}
+
+	private void jsonPost(
+			final String path,
+			final Map<?,?> jsonData, final byte[] attachmentBytes, final String attachmentContentType, 
+			final AsyncHttpResponseHandler handler) {
+		jsonPost(path, false, jsonData, attachmentBytes, attachmentContentType, handler);
+	}
+	
+	private void jsonPostHttps(
+			final String path,
+			final Map<?,?> jsonData,
+			final AsyncHttpResponseHandler handler) {
+		jsonPost(path, true, jsonData, null, null, handler);
 	}
 
 	private void get(
