@@ -23,6 +23,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -201,9 +202,14 @@ public class HootcasterApiClient {
 			final String path,
 			final List<String> usernames,
 			final ModifyContactsHandler modifyContactsHandler) {
+		
+		Preconditions.checkNotNull(usernames);
+		if (usernames.isEmpty())
+			throw new IllegalArgumentException("Must pass at least one username!");
+		
 		JSONObject json = new JSONObject();
 		try {
-			json.put("usernames", Preconditions.checkNotNull(usernames));
+			json.put("usernames", new JSONArray(usernames));
 		} catch (JSONException ex) {
 			throw new RuntimeException(ex); // shouldn't ever happen
 		}
