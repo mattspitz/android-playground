@@ -333,6 +333,8 @@ public class HootcasterApiClient {
 				if (httpResponseException.getStatusCode() == 403 &&
 						(apiHandler instanceof HootcasterApiLoggedInHandler)) {
 					((HootcasterApiLoggedInHandler) apiHandler).handleNeedsLogin();
+				} else {
+					apiHandler.handleUnknownException(throwable);
 				}
 			} else if (throwable instanceof ConnectException) {
 				apiHandler.handleConnectionFailure();
