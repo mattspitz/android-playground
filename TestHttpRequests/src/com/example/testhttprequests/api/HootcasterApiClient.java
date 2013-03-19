@@ -37,6 +37,8 @@ import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginResponse;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler.ContactsResponse;
+import com.example.testhttprequests.api.handlers.contact.FindContactsHandler;
+import com.example.testhttprequests.api.handlers.contact.FindContactsHandler.FindContactsResponse;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsResponse;
 import com.example.testhttprequests.api.models.PotentialContact;
@@ -241,6 +243,34 @@ public class HootcasterApiClient {
 			final List<String> usernames,
 			final ModifyContactsHandler modifyContactsHandler) {
 		modifyContacts("contacts/unblock", usernames, modifyContactsHandler);
+	}
+
+	public void findContacts(
+			final Map<String, PotentialContact> potentialContacts,
+			final FindContactsHandler findContactsHandler) {
+		Preconditions.checkNotNull(potentialContacts);
+		if (potentialContacts.isEmpty())
+			throw new IllegalArgumentException("Must pass at least one potential contact!");
+		
+		final Map<String, ? extends Map<String, PotentialContact >> postData = ImmutableMap.of(
+				"contactables", ImmutableMap.copyOf(potentialContacts)
+				);
+
+		jsonPost("contacts/find_new", false, postData,
+				new HootcasterHttpResponseHandler<FindContactsResponse>(
+						FindContactsResponse.getResponseClass(),
+						findContactsHandler,
+						new ResponseHandler<FindContactsResponse>() {
+							@Override
+							public void handleSuccess(FindContactsResponse response) {
+								findContactsHandler.handleSuccess(response.getData().getMatchedContacts());
+							}
+
+							@Override
+							public void handleFailure(FindContactsResponse response) {
+								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
+							}
+						}));
 	}
 	
 	private void jsonPost(

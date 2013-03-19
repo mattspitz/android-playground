@@ -126,4 +126,14 @@
         android:onClick="onUnblockAllClick"
         android:text="unblockAll" />
 
+    <Button
+        android:id="@+id/Button05"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/create_button"
+        android:layout_marginTop="11dp"
+        android:layout_toRightOf="@+id/Button04"
+        android:onClick="onFindContactsClick"
+        android:text="findContacts" />
+
 </RelativeLayout>

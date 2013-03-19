@@ -26,7 +26,7 @@ public interface ContactsHandler extends HootcasterApiHandler, HootcasterApiLogg
 		public List<Contact> getContacts() { return contacts; }
 		
 		@Override
-		public String toString() { return "AllContactsData [contacts=" + contacts + "]"; }
+		public String toString() { return "ContactsData [contacts=" + contacts + "]"; }
 	}
 	
 	public static final class ContactsResponse extends HootcasterResponse<ContactsData> {
