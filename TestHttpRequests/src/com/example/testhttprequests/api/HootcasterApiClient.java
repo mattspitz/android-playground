@@ -347,7 +347,6 @@ public class HootcasterApiClient {
 			
 			httpEntity = multipartEntity;
 			contentType = multipartEntity.getContentType().getValue();
-			Log.i(TAG, "got me my multipart TODO remove");
 		}
 
 		Log.i(TAG, "URL: " + url);
