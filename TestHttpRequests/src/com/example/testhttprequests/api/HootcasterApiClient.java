@@ -13,6 +13,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -23,9 +24,6 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.util.Log;
@@ -41,7 +39,10 @@ import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler.ContactsResponse;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsResponse;
+import com.example.testhttprequests.api.models.PotentialContact;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
@@ -103,25 +104,17 @@ public class HootcasterApiClient {
 
 	public void createAccount(
 			final String username, final String password,
-			final String fullname, final String registrationId,
-			final String email, final String phone, final CreateAccountHandler createAccountHandler) {
+			final String email, final String registrationId,
+			final CreateAccountHandler createAccountHandler) {
 
-		JSONObject json = new JSONObject();
-		try {
-			json.put("username", Preconditions.checkNotNull(username));
-			json.put("password", Preconditions.checkNotNull(password));
-			json.put("fullname", Preconditions.checkNotNull(fullname));
-			json.put("registration_id", Preconditions.checkNotNull(registrationId));
-			json.put("email", Preconditions.checkNotNull(email));
+		final Map<String, String> postData = ImmutableMap.of(
+				"username", Preconditions.checkNotNull(username),
+				"password", Preconditions.checkNotNull(password),
+				"email", Preconditions.checkNotNull(email),
+				"registration_id", Preconditions.checkNotNull(registrationId)
+				);
 
-			if (phone != null)
-				json.put("phone", phone);
-
-		} catch (JSONException ex) {
-			throw new RuntimeException(ex); // shouldn't ever happen
-		}
-
-		jsonPost("account/create", true, json,
+		jsonPost("account/create", true, postData,
 				new HootcasterHttpResponseHandler<CreateAccountResponse>(
 						CreateAccountResponse.getResponseClass(),
 						createAccountHandler,
@@ -142,16 +135,14 @@ public class HootcasterApiClient {
 	public void login(
 			final String username, final String password,
 			final String registrationId, final LoginHandler loginHandler) {	
-		JSONObject json = new JSONObject();
-		try {
-			json.put("username", Preconditions.checkNotNull(username));
-			json.put("password", Preconditions.checkNotNull(password));
-			json.put("registration_id", Preconditions.checkNotNull(registrationId));
-		} catch (JSONException ex) {
-			throw new RuntimeException(ex); // shouldn't ever happen
-		}
+		
+		final Map<String, String> postData = ImmutableMap.of(
+				"username", Preconditions.checkNotNull(username),
+				"password", Preconditions.checkNotNull(password),
+				"registration_id", Preconditions.checkNotNull(registrationId)
+				);
 
-		jsonPost("account/login", true, json,
+		jsonPost("account/login", true, postData,
 				new HootcasterHttpResponseHandler<LoginResponse>(
 						LoginResponse.getResponseClass(),
 						loginHandler,
@@ -207,14 +198,11 @@ public class HootcasterApiClient {
 		if (usernames.isEmpty())
 			throw new IllegalArgumentException("Must pass at least one username!");
 		
-		JSONObject json = new JSONObject();
-		try {
-			json.put("usernames", new JSONArray(usernames));
-		} catch (JSONException ex) {
-			throw new RuntimeException(ex); // shouldn't ever happen
-		}
+		final Map<String, ? extends List<String>> postData = ImmutableMap.of(
+				"usernames", ImmutableList.copyOf(usernames)
+				);
 
-		jsonPost(path, false, json,
+		jsonPost(path, false, postData,
 				new HootcasterHttpResponseHandler<ModifyContactsResponse>(
 						ModifyContactsResponse.getResponseClass(),
 						modifyContactsHandler,
@@ -254,20 +242,27 @@ public class HootcasterApiClient {
 			final ModifyContactsHandler modifyContactsHandler) {
 		modifyContacts("contacts/unblock", usernames, modifyContactsHandler);
 	}
-
+	
 	private void jsonPost(
 			final String path, final boolean isHttps,
-			final JSONObject json, final AsyncHttpResponseHandler handler) {
+			final Map<?,?> jsonData, final AsyncHttpResponseHandler handler) {
 		final String url = getUrl(path, isHttps);
+		String postData;
+		try {
+			postData = objectMapper.writeValueAsString(jsonData);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+		
 		HttpEntity httpEntity;
 		try {
-			httpEntity = new StringEntity(json.toString(), "UTF-8");
+			httpEntity = new StringEntity(postData, "UTF-8");
 		} catch (UnsupportedEncodingException ex) {
 			throw new RuntimeException(ex); // shouldn't ever happen
 		}
 
 		Log.i(TAG, "URL: " + url);
-		Log.i(TAG, "Data: " + json.toString());
+		Log.i(TAG, "Data: " + postData);
 		asyncHttpClient.post(
 				context, url, 
 				httpEntity, "application/json", 

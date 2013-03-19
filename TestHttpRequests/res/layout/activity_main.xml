@@ -79,62 +79,51 @@
         android:hint="password"
         android:inputType="textPassword" />
 
-    <EditText
-        android:id="@+id/create_person"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/create_pass"
-        android:layout_marginLeft="18dp"
-        android:ems="10"
-        android:hint="your name"
-        android:inputType="textPersonName" />
-
     <Button
         android:id="@+id/create_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/create_person"
+        android:layout_below="@+id/create_pass"
         android:layout_marginLeft="18dp"
         android:onClick="onCreateClick"
         android:text="create" />
 
-        <Button
-            android:id="@+id/Button02"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignRight="@+id/Button01"
-            android:layout_marginBottom="12dp"
-            android:onClick="onBlockedContactsClick"
-            android:text="blocked" />
+    <Button
+        android:id="@+id/Button02"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/Button01"
+        android:layout_marginBottom="12dp"
+        android:onClick="onBlockedContactsClick"
+        android:text="blocked" />
 
-        <Button
-            android:id="@+id/Button01"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/Button02"
-            android:layout_toRightOf="@+id/create_person"
-            android:onClick="onContactsClick"
-            android:text="contacts" />
+    <Button
+        android:id="@+id/Button01"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/Button02"
+        android:layout_alignLeft="@+id/textView1"
+        android:onClick="onContactsClick"
+        android:text="contacts" />
 
-        <Button
-            android:id="@+id/Button04"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/Button02"
-            android:layout_centerHorizontal="true"
-            android:onClick="onBlockAllClick"
-            android:text="blockAll" />
+    <Button
+        android:id="@+id/Button04"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/Button02"
+        android:layout_centerHorizontal="true"
+        android:onClick="onBlockAllClick"
+        android:text="blockAll" />
 
-        <Button
-            android:id="@+id/Button03"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/Button04"
-            android:layout_below="@+id/Button04"
-            android:onClick="onUnblockAllClick"
-            android:text="unblockAll" />
+    <Button
+        android:id="@+id/Button03"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/Button04"
+        android:layout_below="@+id/Button04"
+        android:onClick="onUnblockAllClick"
+        android:text="unblockAll" />
 
 </RelativeLayout>

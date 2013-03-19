@@ -12,8 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.testhttprequests.api.HootcasterApiClient;
-import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
 import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
@@ -47,12 +45,10 @@ public class MainActivity extends Activity {
 
 	public void onCreateClick(View view) {
 		String registrationId = Long.toString((new Random()).nextLong());
-		String phone = "";
 
 		client.createAccount(
 				getTextFieldValue(R.id.create_user), getTextFieldValue(R.id.create_pass),
-				getTextFieldValue(R.id.create_person), registrationId,
-				getTextFieldValue(R.id.create_emailaddress), phone,
+				getTextFieldValue(R.id.create_emailaddress), registrationId,
 				new CreateAccountHandler() {
 					@Override
 					public void handleSuccess() {
