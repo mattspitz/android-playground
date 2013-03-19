@@ -7,10 +7,11 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import com.example.testhttprequests.api.handlers.HootcasterApiErrorHandler;
 import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
+import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
 import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionError;
 
-public interface CreateTransactionHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<CreateTransactionError> {
+public interface CreateTransactionHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<CreateTransactionError>, HootcasterApiLoggedInHandler {
 	public void handleSuccess();
 	
 	public static enum CreateTransactionError {

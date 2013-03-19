@@ -1,5 +1,8 @@
 package com.example.testhttprequests;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
@@ -17,10 +20,12 @@ import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.FindContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
+import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler;
 import com.example.testhttprequests.api.models.Contact;
 import com.example.testhttprequests.api.models.MatchedContact;
 import com.example.testhttprequests.api.models.PotentialContact;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
@@ -312,6 +317,54 @@ public class MainActivity extends Activity {
 						Toast.makeText(getApplication(), "Matched " + matchedContacts.size() + " contacts!", Toast.LENGTH_SHORT).show();
 						for (int i = 1; i <= matchedContacts.size(); i++)
 							Toast.makeText(getApplication(), i + ") " + matchedContacts.get(i-1).toString(), Toast.LENGTH_SHORT).show();
+					}
+				});
+	}
+
+	public void onTestUpload(View view) {
+		InputStream inputStream = getResources().openRawResource(R.raw.thinkfast);
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+		int nRead;
+		byte[] data = new byte[8192];
+
+		try {
+			while ((nRead = inputStream.read(data, 0, data.length)) != -1)
+				buffer.write(data, 0, nRead);
+			buffer.flush();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+
+		client.createTransaction(
+				"thinkfast.jpg", buffer.toByteArray(), "image/jpeg", ImmutableList.of("c", "baaby"),
+				new CreateTransactionHandler() {
+
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
+
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						Toast.makeText(getApplication(), "Aw, peas: " + ex, Toast.LENGTH_SHORT).show();
+						//						throw new RuntimeException(ex);
+					}
+
+					@Override
+					public void handleNeedsLogin() {
+						Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();										
+					}
+
+					@Override
+					public void handleErrors(
+							EnumSet<CreateTransactionError> errors) {
+						Toast.makeText(getApplication(), "Got errors: " + errors, Toast.LENGTH_SHORT).show();		
+					}
+
+					@Override
+					public void handleSuccess() {
+						Toast.makeText(getApplication(), "Transaction sent!", Toast.LENGTH_SHORT).show();
 					}
 				});
 	}

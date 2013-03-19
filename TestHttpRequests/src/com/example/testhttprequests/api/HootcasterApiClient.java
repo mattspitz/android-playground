@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -24,6 +25,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import android.content.Context;
@@ -277,8 +282,9 @@ public class HootcasterApiClient {
 	}
 	
 	public void createTransaction(
+			final String imageFilename,
 			final byte[] image,
-			final String imageContentType,
+			final String imageMimeType,
 			final Collection<String> recipients,
 			final CreateTransactionHandler createTransactionHandler) {
 		
@@ -292,7 +298,7 @@ public class HootcasterApiClient {
 				);
 
 		jsonPost("transaction/action/create", postData,
-				image, imageContentType,
+				imageFilename, image, imageMimeType,
 				new HootcasterHttpResponseHandler<CreateTransactionResponse>(
 						CreateTransactionResponse.getResponseClass(),
 						createTransactionHandler,
@@ -310,50 +316,66 @@ public class HootcasterApiClient {
 	}
 	
 	private void jsonPost(
-			final String path, final boolean isHttps,
-			final Map<?,?> jsonData, final byte[] attachmentBytes, final String attachmentContentType, 
+			final String path, final boolean isHttps, final Map<?,?> jsonData, 
+			final String attachmentFilename, final byte[] attachmentBytes, final String attachmentMimeType,
 			final AsyncHttpResponseHandler handler) {
 		final String url = getUrl(path, isHttps);
-		String postData;
+		String jsonPostData;
 		try {
-			postData = objectMapper.writeValueAsString(jsonData);
+			jsonPostData = objectMapper.writeValueAsString(jsonData);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
-		
+
 		HttpEntity httpEntity;
-		try {
-			httpEntity = new StringEntity(postData, "UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException(ex); // shouldn't ever happen
+		String contentType;
+		if (attachmentBytes == null) {
+			try {
+				httpEntity = new StringEntity(jsonPostData, "UTF-8");
+			} catch (UnsupportedEncodingException ex) {
+				throw new RuntimeException(ex); // shouldn't ever happen
+			}
+			contentType = "application/json";
+		} else {
+			MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+			try {
+				multipartEntity.addPart("jsonPayload", new StringBody(jsonPostData, "application/json", Charset.forName("UTF-8")));
+			} catch (UnsupportedEncodingException ex) {
+				throw new RuntimeException(ex); // shouldn't ever happen
+			}
+			multipartEntity.addPart("media", new ByteArrayBody(attachmentBytes, attachmentMimeType, attachmentFilename));
+			
+			httpEntity = multipartEntity;
+			contentType = multipartEntity.getContentType().getValue();
+			Log.i(TAG, "got me my multipart TODO remove");
 		}
 
 		Log.i(TAG, "URL: " + url);
-		Log.i(TAG, "Data: " + postData);
+		Log.i(TAG, "Data: " + jsonPostData);
 		asyncHttpClient.post(
 				context, url, 
-				httpEntity, "application/json", 
+				httpEntity, contentType,
 				handler
 				);
 	}
 	
 	private void jsonPost(
 			final String path, final Map<?,?> jsonData, final AsyncHttpResponseHandler handler) {
-		jsonPost(path, false, jsonData, null, null, handler);
+		jsonPost(path, false, jsonData, null, null, null, handler);
 	}
 
 	private void jsonPost(
-			final String path,
-			final Map<?,?> jsonData, final byte[] attachmentBytes, final String attachmentContentType, 
+			final String path, final Map<?,?> jsonData,
+			final String attachmentFilename, final byte[] attachmentBytes, final String attachmentMimeType,
 			final AsyncHttpResponseHandler handler) {
-		jsonPost(path, false, jsonData, attachmentBytes, attachmentContentType, handler);
+		jsonPost(path, false, jsonData, attachmentFilename, attachmentBytes, attachmentMimeType, handler);
 	}
 	
 	private void jsonPostHttps(
 			final String path,
 			final Map<?,?> jsonData,
 			final AsyncHttpResponseHandler handler) {
-		jsonPost(path, true, jsonData, null, null, handler);
+		jsonPost(path, true, jsonData, null, null, null, handler);
 	}
 
 	private void get(

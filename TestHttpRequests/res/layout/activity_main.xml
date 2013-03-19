@@ -134,6 +134,15 @@
         android:layout_marginTop="11dp"
         android:layout_toRightOf="@+id/Button04"
         android:onClick="onFindContactsClick"
-        android:text="findContacts" />
+        android:text="findPeepz" />
+
+    <Button
+        android:id="@+id/Button06"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/Button05"
+        android:layout_toLeftOf="@+id/Button05"
+        android:onClick="onTestUpload"
+        android:text="testUpload" />
 
 </RelativeLayout>
