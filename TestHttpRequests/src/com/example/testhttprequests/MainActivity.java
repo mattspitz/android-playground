@@ -12,10 +12,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.testhttprequests.api.HootcasterApiClient;
+import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
+import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
 import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
+import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
 import com.example.testhttprequests.api.models.Contact;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 public class MainActivity extends Activity {
 
@@ -124,7 +129,7 @@ public class MainActivity extends Activity {
 					}
 				});
 	}
-	
+
 	public void onBlockedContactsClick(View view) {
 		client.blockedContacts(
 				new ContactsHandler() {
@@ -146,6 +151,129 @@ public class MainActivity extends Activity {
 					@Override
 					public void handleSuccess(List<Contact> contacts) {
 						Toast.makeText(getApplication(), "Blocked contacts: " + contacts, Toast.LENGTH_SHORT).show();
+					}
+				});
+	}
+
+	public void onBlockAllClick(View view) {
+		client.allContacts(
+				new ContactsHandler() {
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
+
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						throw new RuntimeException(ex);
+					}
+
+					@Override
+					public void handleNeedsLogin() {
+						Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();
+					}
+
+					@Override
+					public void handleSuccess(List<Contact> contacts) {
+						List<String> usernames = 
+								Lists.transform(contacts, new Function<Contact, String>() {
+									@Override
+									public String apply(Contact contact) {
+										return contact.getUsername();
+									}
+								});
+						Toast.makeText(getApplication(), "Got " + usernames + ". Blocking!", Toast.LENGTH_SHORT).show();
+						client.blockContacts(
+								usernames,
+								new ModifyContactsHandler() {
+									@Override
+									public void handleConnectionFailure() {
+										throw new RuntimeException("connection failure?!");
+									}
+
+									@Override
+									public void handleUnknownException(Throwable ex) {
+										throw new RuntimeException(ex);
+									}
+
+									@Override
+									public void handleErrors(
+											EnumSet<ModifyContactsError> errors) {
+										Toast.makeText(getApplication(), "Errors: " + errors, Toast.LENGTH_SHORT).show();
+									}
+
+									@Override
+									public void handleNeedsLogin() {
+										Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();										
+									}
+
+									@Override
+									public void handleSuccess() {
+										Toast.makeText(getApplication(), "Totes blocked 'em", Toast.LENGTH_SHORT).show();
+									}
+
+								});
+					}
+				});
+	}
+	public void onUnblockAllClick(View view) {
+		client.blockedContacts(
+				new ContactsHandler() {
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
+
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						throw new RuntimeException(ex);
+					}
+
+					@Override
+					public void handleNeedsLogin() {
+						Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();
+					}
+
+					@Override
+					public void handleSuccess(List<Contact> contacts) {
+						List<String> usernames = 
+								Lists.transform(contacts, new Function<Contact, String>() {
+									@Override
+									public String apply(Contact contact) {
+										return contact.getUsername();
+									}
+								});
+						Toast.makeText(getApplication(), "Got " + usernames + ". Unblocking!", Toast.LENGTH_SHORT).show();
+						client.unblockContacts(
+								usernames,
+								new ModifyContactsHandler() {
+									@Override
+									public void handleConnectionFailure() {
+										throw new RuntimeException("connection failure?!");
+									}
+
+									@Override
+									public void handleUnknownException(Throwable ex) {
+										throw new RuntimeException(ex);
+									}
+
+									@Override
+									public void handleErrors(
+											EnumSet<ModifyContactsError> errors) {
+										Toast.makeText(getApplication(), "Errors: " + errors, Toast.LENGTH_SHORT).show();
+									}
+
+									@Override
+									public void handleNeedsLogin() {
+										Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();										
+									}
+
+									@Override
+									public void handleSuccess() {
+										Toast.makeText(getApplication(), "Totes unblocked 'em", Toast.LENGTH_SHORT).show();
+									}
+
+								});
 					}
 				});
 	}
