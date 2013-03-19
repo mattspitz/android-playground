@@ -10,8 +10,8 @@ import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
 import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler.CreateAccountError;
 
-public abstract class CreateAccountHandler implements HootcasterApiHandler, HootcasterApiErrorHandler<CreateAccountError> {
-	public abstract void handleSuccess();
+public interface CreateAccountHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<CreateAccountError> {
+	public void handleSuccess();
 
 	public static enum CreateAccountError {
 		USERNAME_INVALID("username_invalid"),

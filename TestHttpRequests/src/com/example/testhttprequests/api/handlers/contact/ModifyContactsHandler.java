@@ -11,8 +11,8 @@ import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
 import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsError;
 
-public abstract class ModifyContactsHandler implements HootcasterApiHandler, HootcasterApiErrorHandler<ModifyContactsError>, HootcasterApiLoggedInHandler {
-	public abstract void handleSuccess();
+public interface ModifyContactsHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<ModifyContactsError>, HootcasterApiLoggedInHandler {
+	public void handleSuccess();
 
 	public static enum ModifyContactsError {
 		UNKNOWN("other");

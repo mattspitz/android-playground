@@ -10,8 +10,8 @@ import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
 import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
 import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginError;
 
-public abstract class LoginHandler implements HootcasterApiHandler, HootcasterApiErrorHandler<LoginError> {
-	public abstract void handleSuccess();
+public interface LoginHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<LoginError> {
+	public void handleSuccess();
 	
 	public static enum LoginError {
 		INVALID_LOGIN("invalid_login"),

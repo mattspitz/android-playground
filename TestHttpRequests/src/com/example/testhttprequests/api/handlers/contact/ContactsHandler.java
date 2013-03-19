@@ -10,8 +10,8 @@ import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
 import com.example.testhttprequests.api.handlers.HootcasterResponse;
 import com.example.testhttprequests.api.models.Contact;
 
-public abstract class ContactsHandler implements HootcasterApiHandler, HootcasterApiLoggedInHandler {
-	public abstract void handleSuccess(List<Contact> contacts);
+public interface ContactsHandler extends HootcasterApiHandler, HootcasterApiLoggedInHandler {
+	public void handleSuccess(List<Contact> contacts);
 	
 	public static class ContactsData {
 		private final List<Contact> contacts;
