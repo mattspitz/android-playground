@@ -47,8 +47,11 @@ import com.example.testhttprequests.api.handlers.contact.FindContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.FindContactsHandler.FindContactsResponse;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsResponse;
+import com.example.testhttprequests.api.handlers.transaction.AllTransactionsHandler;
+import com.example.testhttprequests.api.handlers.transaction.AllTransactionsHandler.AllTransactionsResponse;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionResponse;
+import com.example.testhttprequests.api.models.ActionType;
 import com.example.testhttprequests.api.models.PotentialContact;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -145,7 +148,7 @@ public class HootcasterApiClient {
 	public void login(
 			final String username, final String password,
 			final String registrationId, final LoginHandler loginHandler) {	
-		
+
 		final Map<String, String> postData = ImmutableMap.of(
 				"username", Preconditions.checkNotNull(username),
 				"password", Preconditions.checkNotNull(password),
@@ -203,11 +206,11 @@ public class HootcasterApiClient {
 			final String path,
 			final List<String> usernames,
 			final ModifyContactsHandler modifyContactsHandler) {
-		
+
 		Preconditions.checkNotNull(usernames);
 		if (usernames.isEmpty())
 			throw new IllegalArgumentException("Must pass at least one username!");
-		
+
 		final Map<String, ? extends List<String>> postData = ImmutableMap.of(
 				"usernames", ImmutableList.copyOf(usernames)
 				);
@@ -259,7 +262,7 @@ public class HootcasterApiClient {
 		Preconditions.checkNotNull(potentialContacts);
 		if (potentialContacts.isEmpty())
 			throw new IllegalArgumentException("Must pass at least one potential contact!");
-		
+
 		final Map<String, ? extends Map<String, PotentialContact >> postData = ImmutableMap.of(
 				"contactables", ImmutableMap.copyOf(potentialContacts)
 				);
@@ -280,21 +283,44 @@ public class HootcasterApiClient {
 							}
 						}));
 	}
-	
+
+	public void allTransactions(
+			final AllTransactionsHandler allTransactionsHandler) {
+		get("transactions",
+				new HootcasterHttpResponseHandler<AllTransactionsResponse>(
+						AllTransactionsResponse.getResponseClass(),
+						allTransactionsHandler,
+						new ResponseHandler<AllTransactionsResponse>() {
+							@Override
+							public void handleSuccess(AllTransactionsResponse response) {
+								allTransactionsHandler.handleSuccess(response.getData().getTransactions());
+							}
+
+							@Override
+							public void handleFailure(AllTransactionsResponse response) {
+								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
+							}
+						}));
+	}
+
 	public void createTransaction(
 			final String imageFilename,
 			final byte[] image,
 			final String imageMimeType,
 			final Collection<String> recipients,
+			final ActionType actionType,
+			final int numSeconds,
 			final CreateTransactionHandler createTransactionHandler) {
-		
+
 		Preconditions.checkNotNull(image);
 		Preconditions.checkNotNull(recipients);
 		if (recipients.isEmpty())
 			throw new IllegalArgumentException("Must pass at least one recipient!");
-		
-		final Map<String, ? extends List<String>> postData = ImmutableMap.of(
-				"recipients", ImmutableList.copyOf(recipients)
+
+		final Map<String, ?> postData = ImmutableMap.of(
+				"recipients", ImmutableList.copyOf(recipients),
+				"action_type", actionType.getVal(),
+				"num_seconds", numSeconds
 				);
 
 		jsonPost("transaction/action/create", postData,
@@ -314,7 +340,7 @@ public class HootcasterApiClient {
 							}
 						}));
 	}
-	
+
 	private void jsonPost(
 			final String path, final boolean isHttps, final Map<?,?> jsonData, 
 			final String attachmentFilename, final byte[] attachmentBytes, final String attachmentMimeType,
@@ -344,7 +370,7 @@ public class HootcasterApiClient {
 				throw new RuntimeException(ex); // shouldn't ever happen
 			}
 			multipartEntity.addPart("media", new ByteArrayBody(attachmentBytes, attachmentMimeType, attachmentFilename));
-			
+
 			httpEntity = multipartEntity;
 			contentType = multipartEntity.getContentType().getValue();
 		}
@@ -357,7 +383,7 @@ public class HootcasterApiClient {
 				handler
 				);
 	}
-	
+
 	private void jsonPost(
 			final String path, final Map<?,?> jsonData, final AsyncHttpResponseHandler handler) {
 		jsonPost(path, false, jsonData, null, null, null, handler);
@@ -369,7 +395,7 @@ public class HootcasterApiClient {
 			final AsyncHttpResponseHandler handler) {
 		jsonPost(path, false, jsonData, attachmentFilename, attachmentBytes, attachmentMimeType, handler);
 	}
-	
+
 	private void jsonPostHttps(
 			final String path,
 			final Map<?,?> jsonData,
@@ -380,6 +406,7 @@ public class HootcasterApiClient {
 	private void get(
 			final String path, final AsyncHttpResponseHandler handler) {
 		final String url = getUrl(path, false);
+		Log.i(TAG, "URL: " + url);
 		asyncHttpClient.get(
 				context, url, handler
 				);

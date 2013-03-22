@@ -109,40 +109,59 @@
         android:text="contacts" />
 
     <Button
-        android:id="@+id/Button04"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/Button02"
-        android:layout_centerHorizontal="true"
-        android:onClick="onBlockAllClick"
-        android:text="blockAll" />
-
-    <Button
         android:id="@+id/Button03"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/Button04"
-        android:layout_below="@+id/Button04"
+        android:layout_alignBaseline="@+id/Button02"
+        android:layout_alignBottom="@+id/Button02"
+        android:layout_toRightOf="@+id/Button02"
         android:onClick="onUnblockAllClick"
         android:text="unblockAll" />
 
     <Button
-        android:id="@+id/Button05"
+        android:id="@+id/Button04"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/create_button"
-        android:layout_marginTop="11dp"
-        android:layout_toRightOf="@+id/Button04"
-        android:onClick="onFindContactsClick"
-        android:text="findPeepz" />
+        android:layout_above="@+id/Button03"
+        android:layout_alignLeft="@+id/Button03"
+        android:onClick="onBlockAllClick"
+        android:text="blockAll" />
 
     <Button
         android:id="@+id/Button06"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/Button05"
-        android:layout_toLeftOf="@+id/Button05"
-        android:onClick="onTestUpload"
-        android:text="testUpload" />
+        android:layout_alignBaseline="@+id/create_button"
+        android:layout_alignBottom="@+id/create_button"
+        android:layout_alignLeft="@+id/Button04"
+        android:onClick="onTestUploadA"
+        android:text="uploadA" />
+
+    <Button
+        android:id="@+id/Button05"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/create_pass"
+        android:layout_toRightOf="@+id/Button06"
+        android:onClick="onFindContactsClick"
+        android:text="findPeepz" />
+
+    <Button
+        android:id="@+id/Button07"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/Button05"
+        android:onClick="onTestUploadR"
+        android:text="uploadR" />
+
+    <Button
+        android:id="@+id/Button08"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/Button07"
+        android:layout_toRightOf="@+id/Button03"
+        android:onClick="onTransactionsClick"
+        android:text="transactions" />
 
 </RelativeLayout>

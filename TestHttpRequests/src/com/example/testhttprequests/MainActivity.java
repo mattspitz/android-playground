@@ -20,10 +20,13 @@ import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.FindContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
+import com.example.testhttprequests.api.handlers.transaction.AllTransactionsHandler;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler;
+import com.example.testhttprequests.api.models.ActionType;
 import com.example.testhttprequests.api.models.Contact;
 import com.example.testhttprequests.api.models.MatchedContact;
 import com.example.testhttprequests.api.models.PotentialContact;
+import com.example.testhttprequests.api.models.Transaction;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -321,7 +324,57 @@ public class MainActivity extends Activity {
 				});
 	}
 
-	public void onTestUpload(View view) {
+/*	public void onTestUploadR(View view) {
+		InputStream inputStream = getResources().openRawResource(R.raw.quickpan);
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+		int nRead;
+		byte[] data = new byte[8192];
+
+		try {
+			while ((nRead = inputStream.read(data, 0, data.length)) != -1)
+				buffer.write(data, 0, nRead);
+			buffer.flush();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+
+		client.createReaction(
+				"quickpan.mp4", buffer.toByteArray(), "video/mp4", 
+				new CreateReactionHandler() {
+					
+				});
+	}*/
+	
+	public void onTransactionsClick(View view) {
+		client.allTransactions(new AllTransactionsHandler() {
+
+			@Override
+			public void handleConnectionFailure() {
+				throw new RuntimeException("connection failure?!");
+			}
+
+			@Override
+			public void handleUnknownException(Throwable ex) {
+				throw new RuntimeException(ex);
+			}
+
+			@Override
+			public void handleNeedsLogin() {
+				Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();										
+			}
+
+			@Override
+			public void handleSuccess(
+					List<Transaction> transactions) {
+				Toast.makeText(getApplication(), "Found " + transactions.size() + " transactions!", Toast.LENGTH_SHORT).show();
+				for (int i = 1; i <= transactions.size(); i++)
+					Toast.makeText(getApplication(), i + ") " + transactions.get(i-1).toString(), Toast.LENGTH_SHORT).show();
+			}
+		});
+	}
+	
+	public void onTestUploadA(View view) {
 		InputStream inputStream = getResources().openRawResource(R.raw.thinkfast);
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
@@ -336,8 +389,11 @@ public class MainActivity extends Activity {
 			throw new RuntimeException(ex);
 		}
 
+		int numSeconds = 10;
+		
 		client.createTransaction(
-				"thinkfast.jpg", buffer.toByteArray(), "image/jpeg", ImmutableList.of("c", "baaby"),
+				"thinkfast.jpg", buffer.toByteArray(), "image/jpeg",
+				ImmutableList.of("c", "baaby"), ActionType.PHOTO_CAPTURE, numSeconds,
 				new CreateTransactionHandler() {
 
 					@Override
