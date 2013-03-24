@@ -15,6 +15,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
@@ -49,6 +50,8 @@ import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsResponse;
 import com.example.testhttprequests.api.handlers.transaction.AllTransactionsHandler;
 import com.example.testhttprequests.api.handlers.transaction.AllTransactionsHandler.AllTransactionsResponse;
+import com.example.testhttprequests.api.handlers.transaction.CreateReactionHandler;
+import com.example.testhttprequests.api.handlers.transaction.CreateReactionHandler.CreateReactionResponse;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionResponse;
 import com.example.testhttprequests.api.handlers.transaction.ViewActionHandler;
@@ -315,6 +318,8 @@ public class HootcasterApiClient {
 			final CreateTransactionHandler createTransactionHandler) {
 
 		Preconditions.checkNotNull(image);
+		Preconditions.checkNotNull(imageFilename);
+		Preconditions.checkNotNull(imageMimeType);
 		Preconditions.checkNotNull(recipients);
 		if (recipients.isEmpty())
 			throw new IllegalArgumentException("Must pass at least one recipient!");
@@ -339,6 +344,35 @@ public class HootcasterApiClient {
 							@Override
 							public void handleFailure(CreateTransactionResponse response) {
 								createTransactionHandler.handleErrors(response.getErrors());
+							}
+						}));
+	}
+
+	public void createReaction(
+			final String transactionId,
+			final String videoFilename,
+			final byte[] videoData,
+			final String videoMimeType,
+			final CreateReactionHandler createReactionHandler) {
+		Preconditions.checkNotNull(videoData);
+		Preconditions.checkNotNull(videoFilename);
+		Preconditions.checkNotNull(videoMimeType);
+		Preconditions.checkNotNull(transactionId);
+
+		jsonPost(String.format(Locale.US, "transaction/%s/reaction/create", transactionId),
+				videoFilename, videoData, videoMimeType,
+				new HootcasterJsonResponseHandler<CreateReactionResponse>(
+						CreateReactionResponse.getResponseClass(),
+						createReactionHandler,
+						new JsonResponseHandler<CreateReactionResponse>() {
+							@Override
+							public void handleSuccess(CreateReactionResponse response) {
+								createReactionHandler.handleSuccess();
+							}
+
+							@Override
+							public void handleFailure(CreateReactionResponse response) {
+								createReactionHandler.handleErrors(response.getErrors());
 							}
 						}));
 	}
@@ -369,28 +403,39 @@ public class HootcasterApiClient {
 			final String attachmentFilename, final byte[] attachmentBytes, final String attachmentMimeType,
 			final AsyncHttpResponseHandler handler) {
 		final String url = getUrl(path, isHttps);
-		String jsonPostData;
-		try {
-			jsonPostData = objectMapper.writeValueAsString(jsonData);
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
+
+		String jsonPostData = null;
+		if (jsonData != null) {
+			try {
+				jsonPostData = objectMapper.writeValueAsString(jsonData);
+			} catch (Exception ex) {
+				throw new RuntimeException(ex);
+			}
 		}
 
 		HttpEntity httpEntity;
 		String contentType;
 		if (attachmentBytes == null) {
+			if (jsonPostData == null) {
+				// not necessary to throw an exception, but I'm pretty sure we ever want to POST nothing t'all
+				throw new RuntimeException("No attachment or POST data specified.  Are you sure that's what you want...?");
+			}
+
 			try {
 				httpEntity = new StringEntity(jsonPostData, "UTF-8");
 			} catch (UnsupportedEncodingException ex) {
 				throw new RuntimeException(ex); // shouldn't ever happen
 			}
 			contentType = "application/json";
+
 		} else {
 			MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-			try {
-				multipartEntity.addPart("jsonPayload", new StringBody(jsonPostData, "application/json", Charset.forName("UTF-8")));
-			} catch (UnsupportedEncodingException ex) {
-				throw new RuntimeException(ex); // shouldn't ever happen
+			if (jsonPostData != null) {
+				try {
+					multipartEntity.addPart("jsonPayload", new StringBody(jsonPostData, "application/json", Charset.forName("UTF-8")));
+				} catch (UnsupportedEncodingException ex) {
+					throw new RuntimeException(ex); // shouldn't ever happen
+				}
 			}
 			multipartEntity.addPart("media", new ByteArrayBody(attachmentBytes, attachmentMimeType, attachmentFilename));
 
@@ -417,6 +462,15 @@ public class HootcasterApiClient {
 			final String attachmentFilename, final byte[] attachmentBytes, final String attachmentMimeType,
 			final AsyncHttpResponseHandler handler) {
 		jsonPost(path, false, jsonData, attachmentFilename, attachmentBytes, attachmentMimeType, handler);
+	}
+
+	private void jsonPost(
+			final String path,
+			final String attachmentFilename,
+			final byte[] attachmentBytes,
+			final String attachmentMimeType,
+			final AsyncHttpResponseHandler handler) {
+		jsonPost(path, false, null, attachmentFilename, attachmentBytes, attachmentMimeType, handler);
 	}
 
 	private void jsonPostHttps(

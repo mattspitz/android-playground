@@ -1,6 +1,9 @@
 package com.example.testhttprequests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.EnumSet;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -12,7 +15,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.example.testhttprequests.api.HootcasterApiClient;
+import com.example.testhttprequests.api.handlers.transaction.CreateReactionHandler;
+import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionError;
 import com.example.testhttprequests.storage.FileStash;
 
 public class ActionActivity extends Activity {
@@ -20,27 +27,27 @@ public class ActionActivity extends Activity {
 	public static final String IMAGE_FILENAME = "com.example.testhttprequests.ActionActivity.imageData";
 	public static final String TRANSACTION_ID = "com.example.testhttprequests.ActionActivity.transactionId";
 	public static final String USERNAME = "com.example.testhttprequests.ActionActivity.username";
-	
-	private String username;
+
 	private String transactionId;
-	
+	private HootcasterApiClient client;
+
 	private ImageView imageView;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_action);
 		// Show the Up button in the action bar.
 		setupActionBar();
+
+		this.client = new HootcasterApiClient(this);
+
 		Bundle bundle = getIntent().getExtras();
-
-		username = (String) bundle.get(USERNAME);
 		transactionId = (String) bundle.get(TRANSACTION_ID);
-
 		String imageFilename = (String) bundle.get(IMAGE_FILENAME);
-		
+
 		imageView = (ImageView) findViewById(R.id.imageView1);
-		
+
 		byte[] data;
 		try {
 			data = FileStash.getFile(getApplication(), imageFilename, true);
@@ -51,9 +58,52 @@ public class ActionActivity extends Activity {
 	}
 
 	public void onSendReactionClick(View view) {
-		
+		InputStream inputStream = getResources().openRawResource(R.raw.quickpan);
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+		int nRead;
+		byte[] data = new byte[8192];
+
+		try {
+			while ((nRead = inputStream.read(data, 0, data.length)) != -1)
+				buffer.write(data, 0, nRead);
+			buffer.flush();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+
+		client.createReaction(
+				transactionId,
+				"quickpan.mp4", buffer.toByteArray(), "video/mp4",
+				new CreateReactionHandler() {
+					@Override
+					public void handleConnectionFailure() {
+						throw new RuntimeException("connection failure?!");
+					}
+
+					@Override
+					public void handleUnknownException(Throwable ex) {
+						Toast.makeText(getApplication(), "Aw, peas: " + ex, Toast.LENGTH_SHORT).show();
+					}
+
+					@Override
+					public void handleNeedsLogin() {
+						Toast.makeText(getApplication(), "Needs login!", Toast.LENGTH_SHORT).show();										
+					}
+
+					@Override
+					public void handleErrors(
+							EnumSet<CreateReactionError> errors) {
+						Toast.makeText(getApplication(), "Got errors: " + errors, Toast.LENGTH_SHORT).show();		
+					}
+
+					@Override
+					public void handleSuccess() {
+						Toast.makeText(getApplication(), "Reaction sent!", Toast.LENGTH_SHORT).show();
+					}			
+				});
 	}
-	
+
 	/**
 	 * Set up the {@link android.app.ActionBar}, if the API is available.
 	 */

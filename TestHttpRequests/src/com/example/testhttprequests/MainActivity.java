@@ -399,7 +399,7 @@ public class MainActivity extends Activity {
 									Intent intent = new Intent(MainActivity.this, ActionActivity.class);
 									intent.putExtra(ActionActivity.USERNAME, username);
 									intent.putExtra(ActionActivity.TRANSACTION_ID, transactionId);
-									
+
 									String filename = String.format(Locale.US, "%d.jpg", (new Date()).getTime());
 									try {
 										FileStash.stashFile(getApplication(), imageData, filename);
@@ -440,8 +440,7 @@ public class MainActivity extends Activity {
 					List<Transaction> transactions) {
 				MainActivity.this.transactions = transactions;
 				Toast.makeText(getApplication(), "Found " + transactions.size() + " transactions!", Toast.LENGTH_SHORT).show();
-				for (int i = 1; i <= transactions.size(); i++)
-					Toast.makeText(getApplication(), i + ") " + transactions.get(i-1).toString(), Toast.LENGTH_SHORT).show();
+				// for (int i = 1; i <= transactions.size(); i++) Toast.makeText(getApplication(), i + ") " + transactions.get(i-1).toString(), Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
