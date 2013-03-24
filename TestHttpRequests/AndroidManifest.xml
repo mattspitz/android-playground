@@ -25,11 +25,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
         <uses-library android:name="android.test.runner" />
+
+        <activity
+            android:name="com.example.testhttprequests.ActionActivity"
+            android:label="@string/title_activity_action"
+            android:parentActivityName="com.example.testhttprequests.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.testhttprequests.MainActivity" />
+        </activity>
     </application>
-    
-    <instrumentation android:name="android.test.InstrumentationTestRunner"
-       android:targetPackage="com.example.testhttprequests" android:label="Ze Test Suite" />
+
+    <instrumentation
+        android:name="android.test.InstrumentationTestRunner"
+        android:label="Ze Test Suite"
+        android:targetPackage="com.example.testhttprequests" />
 
 </manifest>

@@ -51,6 +51,7 @@ import com.example.testhttprequests.api.handlers.transaction.AllTransactionsHand
 import com.example.testhttprequests.api.handlers.transaction.AllTransactionsHandler.AllTransactionsResponse;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionResponse;
+import com.example.testhttprequests.api.handlers.transaction.ViewActionHandler;
 import com.example.testhttprequests.api.models.ActionType;
 import com.example.testhttprequests.api.models.PotentialContact;
 import com.google.common.base.Preconditions;
@@ -58,6 +59,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
 
 public class HootcasterApiClient {
@@ -128,10 +130,10 @@ public class HootcasterApiClient {
 				);
 
 		jsonPostHttps("account/create", postData,
-				new HootcasterHttpResponseHandler<CreateAccountResponse>(
+				new HootcasterJsonResponseHandler<CreateAccountResponse>(
 						CreateAccountResponse.getResponseClass(),
 						createAccountHandler,
-						new ResponseHandler<CreateAccountResponse>() {
+						new JsonResponseHandler<CreateAccountResponse>() {
 
 							@Override
 							public void handleSuccess(CreateAccountResponse response) {
@@ -156,10 +158,10 @@ public class HootcasterApiClient {
 				);
 
 		jsonPostHttps("account/login", postData,
-				new HootcasterHttpResponseHandler<LoginResponse>(
+				new HootcasterJsonResponseHandler<LoginResponse>(
 						LoginResponse.getResponseClass(),
 						loginHandler,
-						new ResponseHandler<LoginResponse>() {
+						new JsonResponseHandler<LoginResponse>() {
 							@Override
 							public void handleSuccess(LoginResponse response) {
 								loginHandler.handleSuccess();
@@ -176,10 +178,10 @@ public class HootcasterApiClient {
 			final String path,
 			final ContactsHandler contactsHandler) {
 		get(path,
-				new HootcasterHttpResponseHandler<ContactsResponse>(
+				new HootcasterJsonResponseHandler<ContactsResponse>(
 						ContactsResponse.getResponseClass(),
 						contactsHandler,
-						new ResponseHandler<ContactsResponse>() {
+						new JsonResponseHandler<ContactsResponse>() {
 							@Override
 							public void handleSuccess(ContactsResponse response) {
 								contactsHandler.handleSuccess(response.getData().getContacts());
@@ -216,10 +218,10 @@ public class HootcasterApiClient {
 				);
 
 		jsonPost(path, postData,
-				new HootcasterHttpResponseHandler<ModifyContactsResponse>(
+				new HootcasterJsonResponseHandler<ModifyContactsResponse>(
 						ModifyContactsResponse.getResponseClass(),
 						modifyContactsHandler,
-						new ResponseHandler<ModifyContactsResponse>() {
+						new JsonResponseHandler<ModifyContactsResponse>() {
 							@Override
 							public void handleSuccess(ModifyContactsResponse response) {
 								modifyContactsHandler.handleSuccess();
@@ -268,10 +270,10 @@ public class HootcasterApiClient {
 				);
 
 		jsonPost("contacts/find_new", postData,
-				new HootcasterHttpResponseHandler<FindContactsResponse>(
+				new HootcasterJsonResponseHandler<FindContactsResponse>(
 						FindContactsResponse.getResponseClass(),
 						findContactsHandler,
-						new ResponseHandler<FindContactsResponse>() {
+						new JsonResponseHandler<FindContactsResponse>() {
 							@Override
 							public void handleSuccess(FindContactsResponse response) {
 								findContactsHandler.handleSuccess(response.getData().getMatchedContacts());
@@ -287,10 +289,10 @@ public class HootcasterApiClient {
 	public void allTransactions(
 			final AllTransactionsHandler allTransactionsHandler) {
 		get("transactions",
-				new HootcasterHttpResponseHandler<AllTransactionsResponse>(
+				new HootcasterJsonResponseHandler<AllTransactionsResponse>(
 						AllTransactionsResponse.getResponseClass(),
 						allTransactionsHandler,
-						new ResponseHandler<AllTransactionsResponse>() {
+						new JsonResponseHandler<AllTransactionsResponse>() {
 							@Override
 							public void handleSuccess(AllTransactionsResponse response) {
 								allTransactionsHandler.handleSuccess(response.getData().getTransactions());
@@ -325,10 +327,10 @@ public class HootcasterApiClient {
 
 		jsonPost("transaction/action/create", postData,
 				imageFilename, image, imageMimeType,
-				new HootcasterHttpResponseHandler<CreateTransactionResponse>(
+				new HootcasterJsonResponseHandler<CreateTransactionResponse>(
 						CreateTransactionResponse.getResponseClass(),
 						createTransactionHandler,
-						new ResponseHandler<CreateTransactionResponse>() {
+						new JsonResponseHandler<CreateTransactionResponse>() {
 							@Override
 							public void handleSuccess(CreateTransactionResponse response) {
 								createTransactionHandler.handleSuccess();
@@ -337,6 +339,27 @@ public class HootcasterApiClient {
 							@Override
 							public void handleFailure(CreateTransactionResponse response) {
 								createTransactionHandler.handleErrors(response.getErrors());
+							}
+						}));
+	}
+
+	public void viewAction(
+			final String transactionId,
+			final ViewActionHandler viewActionHandler) {
+		Preconditions.checkNotNull(transactionId);
+
+		get(String.format("transaction/%s/action/view", transactionId),
+				new HootcasterBinaryResponseHandler(
+						viewActionHandler,
+						new BinaryResponseHandler() {
+							@Override
+							public void handleSuccess(byte[] response) {
+								viewActionHandler.handleSuccess(response);
+							}
+
+							@Override
+							public void handleFailure(byte[] response) {
+								throw new RuntimeException("We failed yet got a reasonable response of " + response.length + " bytes?");
 							}
 						}));
 	}
@@ -418,20 +441,25 @@ public class HootcasterApiClient {
 		return String.format("%s://%s/v1/%s", scheme, host, path);
 	}
 
-	private interface ResponseHandler<R extends HootcasterResponse<?>> {
+	private interface JsonResponseHandler<R extends HootcasterResponse<?>> {
 		public void handleSuccess(R response);
 		public void handleFailure(R response);
 	}
 
-	public static class HootcasterHttpResponseHandler<R extends HootcasterResponse<?>> extends AsyncHttpResponseHandler {
+	private interface BinaryResponseHandler {
+		public void handleSuccess(byte[] response);
+		public void handleFailure(byte[] response);
+	}
+
+	private static class HootcasterJsonResponseHandler<R extends HootcasterResponse<?>> extends AsyncHttpResponseHandler {
 		private final Class<R> responseClass;
 		private final HootcasterApiHandler apiHandler;
-		private final ResponseHandler<R> responseHandler;
+		private final JsonResponseHandler<R> responseHandler;
 
-		public HootcasterHttpResponseHandler(
+		public HootcasterJsonResponseHandler(
 				final Class<R> responseClass,
 				final HootcasterApiHandler apiHandler,
-				final ResponseHandler<R> responseHandler) {
+				final JsonResponseHandler<R> responseHandler) {
 			super();
 			this.responseClass = responseClass;
 			this.apiHandler = apiHandler;
@@ -455,7 +483,7 @@ public class HootcasterApiClient {
 		}
 
 		@Override
-		public void onFailure(final Throwable throwable, final String responseStr) {
+		public final void onFailure(final Throwable throwable, final String responseStr) {
 			Log.e(TAG, "Failure", throwable);
 			if (throwable instanceof HttpResponseException) {
 				HttpResponseException httpResponseException = (HttpResponseException) throwable;
@@ -476,6 +504,43 @@ public class HootcasterApiClient {
 					return;
 				}
 				responseHandler.handleFailure(response);
+			}
+		}
+	}
+
+	private static class HootcasterBinaryResponseHandler extends BinaryHttpResponseHandler {
+		private final HootcasterApiHandler apiHandler;
+		private final BinaryResponseHandler responseHandler;
+
+		public HootcasterBinaryResponseHandler(
+				final HootcasterApiHandler apiHandler,
+				final BinaryResponseHandler responseHandler) {
+			super();
+			this.apiHandler = apiHandler;
+			this.responseHandler = responseHandler;
+		}
+
+		@Override
+		public final void onSuccess(byte[] binaryData) {
+			Log.i(TAG, "Received " + binaryData.length + " bytes.");
+			responseHandler.handleSuccess(binaryData);
+		}
+
+		@Override
+		public final void onFailure(final Throwable throwable, final byte[] binaryData) {
+			Log.e(TAG, "Failure", throwable);
+			if (throwable instanceof HttpResponseException) {
+				HttpResponseException httpResponseException = (HttpResponseException) throwable;
+				if (httpResponseException.getStatusCode() == 403 &&
+						(apiHandler instanceof HootcasterApiLoggedInHandler)) {
+					((HootcasterApiLoggedInHandler) apiHandler).handleNeedsLogin();
+				} else {
+					apiHandler.handleUnknownException(throwable);
+				}
+			} else if (throwable instanceof ConnectException) {
+				apiHandler.handleConnectionFailure();
+			} else {
+				responseHandler.handleFailure(binaryData);
 			}
 		}
 	}

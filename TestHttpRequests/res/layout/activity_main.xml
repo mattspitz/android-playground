@@ -8,87 +8,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/hello_world" />
-
-    <EditText
-        android:id="@+id/login_username"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/create_user"
-        android:layout_below="@+id/textView1"
-        android:layout_marginTop="24dp"
-        android:ems="10"
-        android:hint="username" >
-
-        <requestFocus />
-    </EditText>
-
-    <EditText
-        android:id="@+id/login_password"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/create_user"
-        android:layout_below="@+id/login_username"
-        android:ems="10"
-        android:hint="password"
-        android:inputType="textPassword" />
-
-    <Button
-        android:id="@+id/login_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/create_user"
-        android:layout_below="@+id/login_password"
-        android:onClick="onLoginClick"
-        android:text="login" />
-
-    <EditText
-        android:id="@+id/create_user"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/login_button"
-        android:layout_marginLeft="18dp"
-        android:layout_marginTop="33dp"
-        android:ems="10"
-        android:hint="username" />
-
-    <EditText
-        android:id="@+id/create_emailaddress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/create_user"
-        android:layout_marginLeft="18dp"
-        android:ems="10"
-        android:hint="email address"
-        android:inputType="textEmailAddress" />
-
-    <EditText
-        android:id="@+id/create_pass"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/create_emailaddress"
-        android:layout_marginLeft="18dp"
-        android:ems="10"
-        android:hint="password"
-        android:inputType="textPassword" />
-
-    <Button
-        android:id="@+id/create_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/create_pass"
-        android:layout_marginLeft="18dp"
-        android:onClick="onCreateClick"
-        android:text="create" />
-
     <Button
         android:id="@+id/Button02"
         android:layout_width="wrap_content"
@@ -98,15 +17,6 @@
         android:layout_marginBottom="12dp"
         android:onClick="onBlockedContactsClick"
         android:text="blocked" />
-
-    <Button
-        android:id="@+id/Button01"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/Button02"
-        android:layout_alignLeft="@+id/textView1"
-        android:onClick="onContactsClick"
-        android:text="contacts" />
 
     <Button
         android:id="@+id/Button03"
@@ -131,18 +41,108 @@
         android:id="@+id/Button06"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/create_button"
-        android:layout_alignBottom="@+id/create_button"
-        android:layout_alignLeft="@+id/Button04"
+        android:layout_alignBaseline="@+id/Button03"
+        android:layout_alignBottom="@+id/Button03"
+        android:layout_alignParentRight="true"
         android:onClick="onTestUploadA"
         android:text="uploadA" />
+
+    <EditText
+        android:id="@+id/create_emailaddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/Button01"
+        android:layout_marginBottom="66dp"
+        android:layout_toLeftOf="@+id/Button06"
+        android:ems="10"
+        android:hint="email address"
+        android:inputType="textEmailAddress" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/create_pass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/create_emailaddress"
+        android:layout_toLeftOf="@+id/Button06"
+        android:ems="10"
+        android:hint="password"
+        android:inputType="textPassword" />
+
+    <EditText
+        android:id="@+id/create_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/create_pass"
+        android:layout_alignLeft="@+id/create_pass"
+        android:ems="10"
+        android:hint="username" />
+
+    <EditText
+        android:id="@+id/login_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:hint="username" />
+
+    <EditText
+        android:id="@+id/login_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/login_username"
+        android:ems="10"
+        android:hint="password"
+        android:inputType="textPassword" />
+
+    <Button
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/login_username"
+        android:layout_alignBottom="@+id/login_username"
+        android:layout_toRightOf="@+id/login_username"
+        android:onClick="onLoginClick"
+        android:text="login" />
+
+    <Button
+        android:id="@+id/Button01"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/Button04"
+        android:layout_alignBottom="@+id/Button04"
+        android:layout_alignLeft="@+id/create_emailaddress"
+        android:onClick="onContactsClick"
+        android:text="contacts" />
+
+    <Button
+        android:id="@+id/create_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/Button01"
+        android:layout_alignParentLeft="true"
+        android:onClick="onCreateClick"
+        android:text="create" />
+
+    <Button
+        android:id="@+id/Button08"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/create_button"
+        android:layout_toRightOf="@+id/Button01"
+        android:onClick="onTransactionsClick"
+        android:text="transactions" />
 
     <Button
         android:id="@+id/Button05"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/create_pass"
-        android:layout_toRightOf="@+id/Button06"
+        android:layout_below="@+id/Button08"
+        android:layout_toRightOf="@+id/Button04"
         android:onClick="onFindContactsClick"
         android:text="findPeepz" />
 
@@ -150,18 +150,18 @@
         android:id="@+id/Button07"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/Button05"
-        android:onClick="onTestUploadR"
-        android:text="uploadR" />
+        android:layout_alignLeft="@+id/Button02"
+        android:layout_below="@+id/login_password"
+        android:onClick="onTestViewA"
+        android:text="viewA" />
 
     <Button
-        android:id="@+id/Button08"
+        android:id="@+id/Button09"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/Button07"
-        android:layout_toRightOf="@+id/Button03"
-        android:onClick="onTransactionsClick"
-        android:text="transactions" />
+        android:layout_below="@+id/login_password"
+        android:layout_toLeftOf="@+id/Button05"
+        android:onClick="onTestViewR"
+        android:text="viewR" />
 
 </RelativeLayout>
