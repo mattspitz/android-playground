@@ -305,11 +305,11 @@ public class MainActivity extends Activity {
 	public void onFindContactsClick(View view) {
 		client.findContacts(
 				ImmutableMap.of(
-						"BaabyKennedy", new PotentialContact("baaby@testusers.com", "1234567890"),
-						"MuttonDamon", new PotentialContact("mutton@testusers.com", "9876543210"),
-						"SeaBlocked", new PotentialContact("cblocked@testusers.com", "4567891230"),
-						"EmmBlocked", new PotentialContact("mblocked@testusers.com", null),
-						"UhOhSpaghettios", new PotentialContact("chef@boyardee.com", "9871234560")
+						"BaabyKennedy", new PotentialContact("baaby@testusers.com", "1234567890", null),
+						"MuttonDamon", new PotentialContact(null, "9876543210", "mutton"),
+						"SeaBlocked", new PotentialContact("cblocked@testusers.com", "4567891230", "cblocked"),
+						"EmmBlocked", new PotentialContact("mblocked@testusers.com", null, null),
+						"UhOhSpaghettios", new PotentialContact("chef@boyardee.com", "9871234560", null)
 						),
 						new FindContactsHandler() {
 

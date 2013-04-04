@@ -11,20 +11,24 @@ import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 public final class PotentialContact {
 	private final String email;
 	private final String phone;
+	private final String username;
 
 	public PotentialContact(
 			final String email,
-			final String phone
+			final String phone,
+			final String username
 			) {
 		this.email = email;
 		this.phone = phone;
+		this.username = username;
 	}
-	
+
 	public String getEmail() { return email; }
 	public String getPhone() { return phone; }
+	public String getUsername() { return username; }
 
 	@Override
 	public String toString() {
-		return "PotentialContact [email=" + email + ", phone=" + phone + "]";
+		return "PotentialContact [email=" + email + ", phone=" + phone + ", username=" + username + "]";
 	}
 }
