@@ -56,6 +56,7 @@ import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHa
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionResponse;
 import com.example.testhttprequests.api.handlers.transaction.ViewActionHandler;
 import com.example.testhttprequests.api.models.ActionType;
+import com.example.testhttprequests.api.models.Contact;
 import com.example.testhttprequests.api.models.PotentialContact;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -207,7 +208,7 @@ public class HootcasterApiClient {
 		getContacts("contacts/blocked", contactsHandler);
 	}
 
-	private void modifyContacts(
+	private void modifyContactsByUsername(
 			final String path,
 			final List<String> usernames,
 			final ModifyContactsHandler modifyContactsHandler) {
@@ -238,27 +239,49 @@ public class HootcasterApiClient {
 	}
 
 	public void addContacts(
-			final List<String> usernames,
+			final List<Contact> contacts,
 			final ModifyContactsHandler modifyContactsHandler) {
-		modifyContacts("contacts/add", usernames, modifyContactsHandler);
+		Preconditions.checkNotNull(contacts);
+		if (contacts.isEmpty())
+			throw new IllegalArgumentException("Must pass at least one username!");
+
+		final Map<String, ? extends List<Contact>> postData = ImmutableMap.of(
+				"users", ImmutableList.copyOf(contacts)
+				);
+
+		jsonPost("contacts/add", postData,
+				new HootcasterJsonResponseHandler<ModifyContactsResponse>(
+						ModifyContactsResponse.getResponseClass(),
+						modifyContactsHandler,
+						new JsonResponseHandler<ModifyContactsResponse>() {
+							@Override
+							public void handleSuccess(ModifyContactsResponse response) {
+								modifyContactsHandler.handleSuccess();
+							}
+
+							@Override
+							public void handleFailure(ModifyContactsResponse response) {
+								throw new RuntimeException("Unexpectedly failed with correctly deserialized response: " + response);
+							}
+						}));
 	}
 
 	public void removeContacts(
 			final List<String> usernames,
 			final ModifyContactsHandler modifyContactsHandler) {
-		modifyContacts("contacts/remove", usernames, modifyContactsHandler);
+		modifyContactsByUsername("contacts/remove", usernames, modifyContactsHandler);
 	}
 
 	public void blockContacts(
 			final List<String> usernames,
 			final ModifyContactsHandler modifyContactsHandler) {
-		modifyContacts("contacts/block", usernames, modifyContactsHandler);
+		modifyContactsByUsername("contacts/block", usernames, modifyContactsHandler);
 	}
 
 	public void unblockContacts(
 			final List<String> usernames,
 			final ModifyContactsHandler modifyContactsHandler) {
-		modifyContacts("contacts/unblock", usernames, modifyContactsHandler);
+		modifyContactsByUsername("contacts/unblock", usernames, modifyContactsHandler);
 	}
 
 	public void findContacts(

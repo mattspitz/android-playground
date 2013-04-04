@@ -4,23 +4,23 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 public final class Contact {
-	private final String fullname;
+	private final String displayName;
 	private final String username;
 	
 	@JsonCreator
 	private Contact(
-		@JsonProperty("fullname") final String fullname,
+		@JsonProperty("display_name") final String displayName,
 		@JsonProperty("username") final String username
 			) {
-		this.fullname = fullname;
+		this.displayName = displayName;
 		this.username = username;
 	}
 
-	public String getFullname() { return fullname; }
+	public String getDisplayName() { return displayName; }
 	public String getUsername() { return username; }
 
 	@Override
 	public String toString() {
-		return "Contact [fullname=" + fullname + ", username=" + username + "]";
+		return "Contact [displayName=" + displayName + ", username=" + username + "]";
 	}
 }
