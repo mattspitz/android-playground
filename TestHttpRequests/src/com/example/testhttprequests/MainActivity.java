@@ -17,7 +17,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.testhttprequests.api.HootcasterApiClient;
+import com.example.testhttprequests.api.HootApiClient;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
 import com.example.testhttprequests.api.handlers.account.LoginHandler;
 import com.example.testhttprequests.api.handlers.contact.ContactsHandler;
@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
 
 	private static final String TAG = "MainActivity";
 
-	private HootcasterApiClient client;
+	private HootApiClient client;
 
 	private String username;
 	private List<Transaction> transactions;
@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		this.client = new HootcasterApiClient(this);
+		this.client = new HootApiClient(this);
 	}
 
 	@Override

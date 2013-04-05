@@ -5,13 +5,13 @@ import java.util.EnumSet;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.example.testhttprequests.api.handlers.HootcasterApiErrorHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
-import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
+import com.example.testhttprequests.api.handlers.ErrorHandler;
+import com.example.testhttprequests.api.handlers.BasicHandler;
+import com.example.testhttprequests.api.handlers.LoggedInHandler;
+import com.example.testhttprequests.api.handlers.ErrorResponse;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionError;
 
-public interface CreateTransactionHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<CreateTransactionError>, HootcasterApiLoggedInHandler {
+public interface CreateTransactionHandler extends BasicHandler, ErrorHandler<CreateTransactionError>, LoggedInHandler {
 	public void handleSuccess();
 	
 	public static enum CreateTransactionError {
@@ -30,7 +30,7 @@ public interface CreateTransactionHandler extends HootcasterApiHandler, Hootcast
 		}
 	}
 	
-	public static final class CreateTransactionResponse extends HootcasterErrorResponse<Void, CreateTransactionError> {
+	public static final class CreateTransactionResponse extends ErrorResponse<Void, CreateTransactionError> {
 		@JsonCreator
 		private CreateTransactionResponse(
 				@JsonProperty("okay") boolean okay,

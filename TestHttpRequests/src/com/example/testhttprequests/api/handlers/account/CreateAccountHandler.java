@@ -5,12 +5,12 @@ import java.util.EnumSet;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.example.testhttprequests.api.handlers.HootcasterApiErrorHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
-import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
+import com.example.testhttprequests.api.handlers.ErrorHandler;
+import com.example.testhttprequests.api.handlers.BasicHandler;
+import com.example.testhttprequests.api.handlers.ErrorResponse;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler.CreateAccountError;
 
-public interface CreateAccountHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<CreateAccountError> {
+public interface CreateAccountHandler extends BasicHandler, ErrorHandler<CreateAccountError> {
 	public void handleSuccess();
 
 	public static enum CreateAccountError {
@@ -39,7 +39,7 @@ public interface CreateAccountHandler extends HootcasterApiHandler, HootcasterAp
 		}
 	}
 	
-	public static final class CreateAccountResponse extends HootcasterErrorResponse<Void, CreateAccountError> {
+	public static final class CreateAccountResponse extends ErrorResponse<Void, CreateAccountError> {
 		@JsonCreator
 		protected CreateAccountResponse(
 				@JsonProperty("okay") boolean okay,

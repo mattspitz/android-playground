@@ -1,5 +1,5 @@
 package com.example.testhttprequests.api.handlers;
 
-public interface HootcasterApiLoggedInHandler {
+public interface LoggedInHandler {
 	public void handleNeedsLogin();
 }

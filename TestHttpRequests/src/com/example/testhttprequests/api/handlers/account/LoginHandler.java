@@ -5,12 +5,12 @@ import java.util.EnumSet;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.example.testhttprequests.api.handlers.HootcasterApiErrorHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
-import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
+import com.example.testhttprequests.api.handlers.ErrorHandler;
+import com.example.testhttprequests.api.handlers.BasicHandler;
+import com.example.testhttprequests.api.handlers.ErrorResponse;
 import com.example.testhttprequests.api.handlers.account.LoginHandler.LoginError;
 
-public interface LoginHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<LoginError> {
+public interface LoginHandler extends BasicHandler, ErrorHandler<LoginError> {
 	public void handleSuccess();
 	
 	public static enum LoginError {
@@ -31,7 +31,7 @@ public interface LoginHandler extends HootcasterApiHandler, HootcasterApiErrorHa
 		}
 	}
 	
-	public static final class LoginResponse extends HootcasterErrorResponse<Void, LoginError> {
+	public static final class LoginResponse extends ErrorResponse<Void, LoginError> {
 		@JsonCreator
 		private LoginResponse(
 				@JsonProperty("okay") boolean okay,

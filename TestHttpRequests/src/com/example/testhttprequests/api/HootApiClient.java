@@ -35,9 +35,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
-import com.example.testhttprequests.api.handlers.HootcasterResponse;
+import com.example.testhttprequests.api.handlers.BasicHandler;
+import com.example.testhttprequests.api.handlers.LoggedInHandler;
+import com.example.testhttprequests.api.handlers.Response;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler;
 import com.example.testhttprequests.api.handlers.account.CreateAccountHandler.CreateAccountResponse;
 import com.example.testhttprequests.api.handlers.account.LoginHandler;
@@ -66,8 +66,8 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.PersistentCookieStore;
 
-public class HootcasterApiClient {
-	private static final String TAG = "HootcasterApiClient";
+public class HootApiClient {
+	private static final String TAG = "HootApiClient";
 
 	private static final String HOST = "api.hootcaster.com";
 	private static final String DEV_HOST = "10.0.2.2"; // adb-connected localhost on android
@@ -76,7 +76,7 @@ public class HootcasterApiClient {
 	private final AsyncHttpClient asyncHttpClient;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-	public HootcasterApiClient(Context context) {
+	public HootApiClient(Context context) {
 		this.context = context;
 		this.asyncHttpClient = new AsyncHttpClient();
 		this.asyncHttpClient.setCookieStore(new PersistentCookieStore(this.context));
@@ -134,7 +134,7 @@ public class HootcasterApiClient {
 				);
 
 		jsonPostHttps("account/create", postData,
-				new HootcasterJsonResponseHandler<CreateAccountResponse>(
+				new HootJsonResponseHandler<CreateAccountResponse>(
 						CreateAccountResponse.getResponseClass(),
 						createAccountHandler,
 						new JsonResponseHandler<CreateAccountResponse>() {
@@ -162,7 +162,7 @@ public class HootcasterApiClient {
 				);
 
 		jsonPostHttps("account/login", postData,
-				new HootcasterJsonResponseHandler<LoginResponse>(
+				new HootJsonResponseHandler<LoginResponse>(
 						LoginResponse.getResponseClass(),
 						loginHandler,
 						new JsonResponseHandler<LoginResponse>() {
@@ -182,7 +182,7 @@ public class HootcasterApiClient {
 			final String path,
 			final ContactsHandler contactsHandler) {
 		get(path,
-				new HootcasterJsonResponseHandler<ContactsResponse>(
+				new HootJsonResponseHandler<ContactsResponse>(
 						ContactsResponse.getResponseClass(),
 						contactsHandler,
 						new JsonResponseHandler<ContactsResponse>() {
@@ -222,7 +222,7 @@ public class HootcasterApiClient {
 				);
 
 		jsonPost(path, postData,
-				new HootcasterJsonResponseHandler<ModifyContactsResponse>(
+				new HootJsonResponseHandler<ModifyContactsResponse>(
 						ModifyContactsResponse.getResponseClass(),
 						modifyContactsHandler,
 						new JsonResponseHandler<ModifyContactsResponse>() {
@@ -250,7 +250,7 @@ public class HootcasterApiClient {
 				);
 
 		jsonPost("contacts/add", postData,
-				new HootcasterJsonResponseHandler<ModifyContactsResponse>(
+				new HootJsonResponseHandler<ModifyContactsResponse>(
 						ModifyContactsResponse.getResponseClass(),
 						modifyContactsHandler,
 						new JsonResponseHandler<ModifyContactsResponse>() {
@@ -296,7 +296,7 @@ public class HootcasterApiClient {
 				);
 
 		jsonPost("contacts/find_new", postData,
-				new HootcasterJsonResponseHandler<FindContactsResponse>(
+				new HootJsonResponseHandler<FindContactsResponse>(
 						FindContactsResponse.getResponseClass(),
 						findContactsHandler,
 						new JsonResponseHandler<FindContactsResponse>() {
@@ -315,7 +315,7 @@ public class HootcasterApiClient {
 	public void allTransactions(
 			final AllTransactionsHandler allTransactionsHandler) {
 		get("transactions",
-				new HootcasterJsonResponseHandler<AllTransactionsResponse>(
+				new HootJsonResponseHandler<AllTransactionsResponse>(
 						AllTransactionsResponse.getResponseClass(),
 						allTransactionsHandler,
 						new JsonResponseHandler<AllTransactionsResponse>() {
@@ -355,7 +355,7 @@ public class HootcasterApiClient {
 
 		jsonPost("transaction/action/create", postData,
 				imageFilename, image, imageMimeType,
-				new HootcasterJsonResponseHandler<CreateTransactionResponse>(
+				new HootJsonResponseHandler<CreateTransactionResponse>(
 						CreateTransactionResponse.getResponseClass(),
 						createTransactionHandler,
 						new JsonResponseHandler<CreateTransactionResponse>() {
@@ -384,7 +384,7 @@ public class HootcasterApiClient {
 
 		jsonPost(String.format(Locale.US, "transaction/%s/reaction/create", transactionId),
 				videoFilename, videoData, videoMimeType,
-				new HootcasterJsonResponseHandler<CreateReactionResponse>(
+				new HootJsonResponseHandler<CreateReactionResponse>(
 						CreateReactionResponse.getResponseClass(),
 						createReactionHandler,
 						new JsonResponseHandler<CreateReactionResponse>() {
@@ -406,7 +406,7 @@ public class HootcasterApiClient {
 		Preconditions.checkNotNull(transactionId);
 
 		get(String.format("transaction/%s/action/view", transactionId),
-				new HootcasterBinaryResponseHandler(
+				new HootBinaryResponseHandler(
 						viewActionHandler,
 						new BinaryResponseHandler() {
 							@Override
@@ -518,7 +518,7 @@ public class HootcasterApiClient {
 		return String.format("%s://%s/v1/%s", scheme, host, path);
 	}
 
-	private interface JsonResponseHandler<R extends HootcasterResponse<?>> {
+	private interface JsonResponseHandler<R extends Response<?>> {
 		public void handleSuccess(R response);
 		public void handleFailure(R response);
 	}
@@ -528,14 +528,14 @@ public class HootcasterApiClient {
 		public void handleFailure(byte[] response);
 	}
 
-	private static class HootcasterJsonResponseHandler<R extends HootcasterResponse<?>> extends AsyncHttpResponseHandler {
+	private static class HootJsonResponseHandler<R extends Response<?>> extends AsyncHttpResponseHandler {
 		private final Class<R> responseClass;
-		private final HootcasterApiHandler apiHandler;
+		private final BasicHandler apiHandler;
 		private final JsonResponseHandler<R> responseHandler;
 
-		public HootcasterJsonResponseHandler(
+		public HootJsonResponseHandler(
 				final Class<R> responseClass,
-				final HootcasterApiHandler apiHandler,
+				final BasicHandler apiHandler,
 				final JsonResponseHandler<R> responseHandler) {
 			super();
 			this.responseClass = responseClass;
@@ -565,8 +565,8 @@ public class HootcasterApiClient {
 			if (throwable instanceof HttpResponseException) {
 				HttpResponseException httpResponseException = (HttpResponseException) throwable;
 				if (httpResponseException.getStatusCode() == 403 &&
-						(apiHandler instanceof HootcasterApiLoggedInHandler)) {
-					((HootcasterApiLoggedInHandler) apiHandler).handleNeedsLogin();
+						(apiHandler instanceof LoggedInHandler)) {
+					((LoggedInHandler) apiHandler).handleNeedsLogin();
 				} else {
 					apiHandler.handleUnknownException(throwable);
 				}
@@ -585,12 +585,12 @@ public class HootcasterApiClient {
 		}
 	}
 
-	private static class HootcasterBinaryResponseHandler extends BinaryHttpResponseHandler {
-		private final HootcasterApiHandler apiHandler;
+	private static class HootBinaryResponseHandler extends BinaryHttpResponseHandler {
+		private final BasicHandler apiHandler;
 		private final BinaryResponseHandler responseHandler;
 
-		public HootcasterBinaryResponseHandler(
-				final HootcasterApiHandler apiHandler,
+		public HootBinaryResponseHandler(
+				final BasicHandler apiHandler,
 				final BinaryResponseHandler responseHandler) {
 			super();
 			this.apiHandler = apiHandler;
@@ -609,8 +609,8 @@ public class HootcasterApiClient {
 			if (throwable instanceof HttpResponseException) {
 				HttpResponseException httpResponseException = (HttpResponseException) throwable;
 				if (httpResponseException.getStatusCode() == 403 &&
-						(apiHandler instanceof HootcasterApiLoggedInHandler)) {
-					((HootcasterApiLoggedInHandler) apiHandler).handleNeedsLogin();
+						(apiHandler instanceof LoggedInHandler)) {
+					((LoggedInHandler) apiHandler).handleNeedsLogin();
 				} else {
 					apiHandler.handleUnknownException(throwable);
 				}

@@ -5,11 +5,11 @@ import java.util.EnumSet;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public abstract class HootcasterErrorResponse<T, E extends Enum<E>> extends HootcasterResponse<T> {
+public abstract class ErrorResponse<T, E extends Enum<E>> extends Response<T> {
 	private final EnumSet<E> errors;
 	
 	@JsonCreator
-	protected HootcasterErrorResponse(
+	protected ErrorResponse(
 		@JsonProperty("okay") final boolean okay,
 		@JsonProperty("data") final T data,
 		@JsonProperty("errors") final EnumSet<E> errors
@@ -22,7 +22,7 @@ public abstract class HootcasterErrorResponse<T, E extends Enum<E>> extends Hoot
 
 	@Override
 	public String toString() {
-		return "HootcasterErrorResponse [okay=" + isOkay() + ", data=" + getData()
+		return "ErrorResponse [okay=" + isOkay() + ", data=" + getData()
 				+ ", errors=" + errors + "]";
 	}
 }

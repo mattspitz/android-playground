@@ -5,13 +5,13 @@ import java.util.EnumSet;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.example.testhttprequests.api.handlers.HootcasterApiErrorHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
-import com.example.testhttprequests.api.handlers.HootcasterErrorResponse;
+import com.example.testhttprequests.api.handlers.ErrorHandler;
+import com.example.testhttprequests.api.handlers.BasicHandler;
+import com.example.testhttprequests.api.handlers.LoggedInHandler;
+import com.example.testhttprequests.api.handlers.ErrorResponse;
 import com.example.testhttprequests.api.handlers.contact.ModifyContactsHandler.ModifyContactsError;
 
-public interface ModifyContactsHandler extends HootcasterApiHandler, HootcasterApiErrorHandler<ModifyContactsError>, HootcasterApiLoggedInHandler {
+public interface ModifyContactsHandler extends BasicHandler, ErrorHandler<ModifyContactsError>, LoggedInHandler {
 	public void handleSuccess();
 
 	public static enum ModifyContactsError {
@@ -30,7 +30,7 @@ public interface ModifyContactsHandler extends HootcasterApiHandler, HootcasterA
 		}
 	}
 
-	public static final class ModifyContactsResponse extends HootcasterErrorResponse<Void, ModifyContactsError> {
+	public static final class ModifyContactsResponse extends ErrorResponse<Void, ModifyContactsError> {
 		@JsonCreator
 		private ModifyContactsResponse(
 				@JsonProperty("okay") boolean okay,

@@ -3,12 +3,12 @@ package com.example.testhttprequests.api.handlers;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public abstract class HootcasterResponse<T> {
+public abstract class Response<T> {
 	private final boolean okay;
 	private final T data;
 	
 	@JsonCreator
-	protected HootcasterResponse(
+	protected Response(
 		@JsonProperty("okay") final boolean okay,
 		@JsonProperty("data") final T data
 			) {
@@ -21,6 +21,6 @@ public abstract class HootcasterResponse<T> {
 
 	@Override
 	public String toString() {
-		return "HootcasterResponse [okay=" + okay + ", data=" + data + "]";
+		return "Response [okay=" + okay + ", data=" + data + "]";
 	}
 }

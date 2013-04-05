@@ -5,12 +5,12 @@ import java.util.List;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-import com.example.testhttprequests.api.handlers.HootcasterApiHandler;
-import com.example.testhttprequests.api.handlers.HootcasterApiLoggedInHandler;
-import com.example.testhttprequests.api.handlers.HootcasterResponse;
+import com.example.testhttprequests.api.handlers.BasicHandler;
+import com.example.testhttprequests.api.handlers.LoggedInHandler;
+import com.example.testhttprequests.api.handlers.Response;
 import com.example.testhttprequests.api.models.MatchedContact;
 
-public interface FindContactsHandler extends HootcasterApiHandler, HootcasterApiLoggedInHandler {
+public interface FindContactsHandler extends BasicHandler, LoggedInHandler {
 	public void handleSuccess(List<MatchedContact> matchedContacts);
 	
 	public static class MatchedContactsData {
@@ -29,7 +29,7 @@ public interface FindContactsHandler extends HootcasterApiHandler, HootcasterApi
 		public String toString() { return "MatchedContactsData [matchedContacts=" + matchedContacts + "]"; }
 	}
 	
-	public static final class FindContactsResponse extends HootcasterResponse<MatchedContactsData> {
+	public static final class FindContactsResponse extends Response<MatchedContactsData> {
 		@JsonCreator
 		private FindContactsResponse(
 				@JsonProperty("okay") final boolean okay,

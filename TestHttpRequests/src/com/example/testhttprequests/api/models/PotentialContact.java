@@ -4,7 +4,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 /**
- * Use this with the FindContacts API.  This represents an email address and/or phone that lives in the user's contact list and may have a Hootcaster account.
+ * Use this with the FindContacts API.  This represents an email address and/or phone that lives in the user's contact list and may have a Hoot account.
  * @author mspitz
  */
 @JsonSerialize(include=Inclusion.NON_NULL)

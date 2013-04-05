@@ -17,7 +17,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.example.testhttprequests.api.HootcasterApiClient;
+import com.example.testhttprequests.api.HootApiClient;
 import com.example.testhttprequests.api.handlers.transaction.CreateReactionHandler;
 import com.example.testhttprequests.api.handlers.transaction.CreateTransactionHandler.CreateTransactionError;
 import com.example.testhttprequests.storage.FileStash;
@@ -29,7 +29,7 @@ public class ActionActivity extends Activity {
 	public static final String USERNAME = "com.example.testhttprequests.ActionActivity.username";
 
 	private String transactionId;
-	private HootcasterApiClient client;
+	private HootApiClient client;
 
 	private ImageView imageView;
 
@@ -40,7 +40,7 @@ public class ActionActivity extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 
-		this.client = new HootcasterApiClient(this);
+		this.client = new HootApiClient(this);
 
 		Bundle bundle = getIntent().getExtras();
 		transactionId = (String) bundle.get(TRANSACTION_ID);
